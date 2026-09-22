@@ -1,4 +1,3 @@
-```javascript
 const { getStore } = require("@netlify/blobs");
 
 exports.handler = async (event) => {
@@ -13,10 +12,7 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: "" };
   }
 
-  // Pega ID da comanda e index do PATH
-  // Exemplo: /.netlify/functions/comanda-item/01/2
   const partes = event.path.split("/");
-
   const index = parseInt(partes[partes.length - 1], 10);
   const comandaId = partes[partes.length - 2];
 
@@ -24,21 +20,20 @@ exports.handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ error: "Parâmetros inválidos" })
+      body: JSON.stringify({ error: "Parametros invalidos" })
     };
   }
 
   try {
     const store = getStore("comandas");
-    const chave = `comanda-${comandaId}`;
-
+    const chave = "comanda-" + comandaId;
     const dados = (await store.get(chave, { type: "json" })) || [];
 
     if (index < 0 || index >= dados.length) {
       return {
         statusCode: 404,
         headers,
-        body: JSON.stringify({ error: "Item não encontrado" })
+        body: JSON.stringify({ error: "Item nao encontrado" })
       };
     }
 
@@ -48,22 +43,15 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        sucesso: true,
-        itens: dados
-      })
+      body: JSON.stringify({ sucesso: true, itens: dados })
     };
 
   } catch (err) {
     console.error("Erro ao remover item:", err);
-
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        error: err.message
-      })
+      body: JSON.stringify({ error: err.message })
     };
   }
 };
-```
