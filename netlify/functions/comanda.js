@@ -1,7 +1,7 @@
+```javascript
 const { getStore } = require("@netlify/blobs");
 
 exports.handler = async (event) => {
-  // CORS - permite chamadas do mesmo site
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -13,11 +13,12 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: "" };
   }
 
-  // Pega o ID da comanda dos query params
-  const params = event.queryStringParameters || {};
-  const comandaId = params.id;
+  // Pega o ID da comanda do PATH da URL
+  // Exemplo: /.netlify/functions/comanda/01
+  const partes = event.path.split("/");
+  const comandaId = partes[partes.length - 1];
 
-  if (!comandaId) {
+  if (!comandaId || comandaId === "comanda") {
     return {
       statusCode: 400,
       headers,
@@ -29,11 +30,10 @@ exports.handler = async (event) => {
   const chave = `comanda-${comandaId}`;
 
   try {
-    // ============================================
-    // GET - Retorna a lista de códigos de barras
-    // ============================================
+    // GET - Retorna a lista
     if (event.httpMethod === "GET") {
       const dados = await store.get(chave, { type: "json" });
+
       return {
         statusCode: 200,
         headers,
@@ -41,9 +41,7 @@ exports.handler = async (event) => {
       };
     }
 
-    // ============================================
-    // POST - Adiciona um código de barras
-    // ============================================
+    // POST - Adiciona um código
     if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body || "{}");
       const barcode = body.barcode;
@@ -57,40 +55,53 @@ exports.handler = async (event) => {
       }
 
       const dados = (await store.get(chave, { type: "json" })) || [];
+
       dados.push(barcode);
+
       await store.setJSON(chave, dados);
 
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ sucesso: true, itens: dados })
+        body: JSON.stringify({
+          sucesso: true,
+          itens: dados
+        })
       };
     }
 
-    // ============================================
     // DELETE - Limpa a comanda
-    // ============================================
     if (event.httpMethod === "DELETE") {
       await store.setJSON(chave, []);
+
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({ sucesso: true, itens: [] })
+        body: JSON.stringify({
+          sucesso: true,
+          itens: []
+        })
       };
     }
 
     return {
       statusCode: 405,
       headers,
-      body: JSON.stringify({ error: "Método não permitido" })
+      body: JSON.stringify({
+        error: "Método não permitido"
+      })
     };
 
   } catch (err) {
     console.error("Erro na função comanda:", err);
+
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({
+        error: err.message
+      })
     };
   }
 };
+```
