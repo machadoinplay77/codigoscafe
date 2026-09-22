@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comanda Tropicana</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: url('fundo.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
+    }
+
+    .app-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 15px;
+      backdrop-filter: blur(5px);
+      display: flex;
+      gap: 15px;
+    }
+
+    .content-wrapper {
+      flex: 1;
+    }
+
+    header, footer {
+      text-align: center;
+    }
+
+    .logo {
+      max-width: 220px;
+      margin-bottom: 10px;
+    }
+
+    .footer-logo {
+      max-width: 50px;
+      vertical-align: middle;
+    }
+
+    .main-content {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .menu-lateral {
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 120px;
+      align-self: flex-start;
+    }
+
+    .menu-toggle {
+      padding: 12px 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #2196F3;
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .menu-toggle:hover {
+      background-color: #1976D2;
+    }
+
+    .menu-toggle i {
+      transition: transform 0.3s;
+    }
+
+    .menu-toggle.expanded i {
+      transform: rotate(180deg);
+    }
+
+    .menu-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      background: rgba(255,255,255,0.9);
+      border-radius: 8px;
+      padding: 0 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .menu-content.expanded {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 15px;
+      margin-top: 5px;
+    }
+
+    .produto-item {
+      margin-bottom: 12px;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .produto-info {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 8px;
+    }
+
+    .produto-nome {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    .produto-codigo {
+      font-size: 11px;
+      background: #f0f0f0;
+      padding: 4px 6px;
+      border-radius: 3px;
+      color: #666;
+      font-family: monospace;
+    }
+
+    .quantidade-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .quantidade-btn {
+      width: 25px;
+      height: 25px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .quantidade-btn:hover {
+      background-color: #45a049;
+    }
+
+    .quantidade-value {
+      margin: 0 8px;
+      font-weight: 500;
+    }
+
+    .adicionar-btn {
+      width: 100%;
+      padding: 8px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .adicionar-btn:hover {
+      background-color: #1976D2;
+    }
+
+    .comanda-selector {
+      flex: 1 1 100%;
+      margin-bottom: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+    }
+
+    .comanda-selector div {
+      display: flex;
+      align-items: center;
+      margin: 5px;
+      width: 18%;
+      background: rgba(255,255,255,0.9);
+      border-radius: 8px;
+      padding: 5px;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+
+    .comanda-selector div:hover {
+      transform: scale(1.05);
+    }
+
+    .comanda-selector div button:first-child {
+      font-size: 16px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 6px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .comanda-selector div button:first-child:hover {
+      background-color: #45a049;
+    }
+
+    .comanda-selector div button:last-child {
+      font-size: 12px;
+      padding: 4px 6px;
+      background-color: orange;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      margin-left: 5px;
+      cursor: pointer;
+    }
+
+    .comanda-selector span {
+      font-size: 12px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      text-align: center;
+      background-color: red;
+      color: white;
+      border-radius: 50%;
+      margin-left: 5px;
+    }
+
+    .content-area {
+      flex: 1 1 100%;
+      background: rgba(255,255,255,0.85);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    }
+
+    .input-group {
+      margin-bottom: 12px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .quick-mode {
+      margin-bottom: 12px;
+    }
+
+    .feedback-message {
+      color: green;
+      margin-bottom: 12px;
+      min-height: 18px;
+      font-weight: 500;
+    }
+
+    .scanned-items {
+      margin-bottom: 12px;
+    }
+
+    .items-list {
+      border: 1px solid #ccc;
+      min-height: 100px;
+      padding: 10px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 8px;
+      overflow-y: auto;
+    }
+
+    .scanned-item {
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .scanned-item:last-child {
+      border-bottom: none;
+    }
+
+    .delete-btn {
+      background-color: #ff4444;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
+      transition: background 0.2s;
+    }
+
+    .delete-btn:hover {
+      background-color: #cc0000;
+    }
+
+    .empty-state {
+      color: #666;
+      font-style: italic;
+    }
+
+    .action-buttons {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-buttons button {
+      padding: 8px 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .action-buttons button:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-print {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .btn-print:hover {
+      background-color: #45a049;
+    }
+
+    .btn-test {
+      background-color: #2196F3;
+      color: white;
+    }
+
+    .btn-test:hover {
+      background-color: #1976D2;
+    }
+
+    .btn-clear {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .btn-clear:hover {
+      background-color: #d32f2f;
+    }
+
+    .btn-qrcode {
+      background-color: #9C27B0;
+      color: white;
+    }
+
+    .btn-qrcode:hover {
+      background-color: #7B1FA2;
+    }
+
+    /* Modal do QR Code */
+    .modal-qrcode {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-qrcode-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 400px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    }
+
+    .modal-qrcode-content h2 {
+      margin-top: 0;
+      color: #2196F3;
+    }
+
+    .modal-qrcode-content #qrcode-container {
+      margin: 20px auto;
+      display: inline-block;
+      padding: 10px;
+      background: white;
+      border: 2px solid #eee;
+      border-radius: 8px;
+    }
+
+    .modal-qrcode-content .url-texto {
+      font-size: 11px;
+      color: #666;
+      word-break: break-all;
+      margin: 10px 0;
+      font-family: monospace;
+    }
+
+    .modal-qrcode-content button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #f44336;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="content-wrapper">
+      <header>
+        <img src="logo.png" class="logo" alt="Logo Tropicana">
+      </header>
+
+      <div class="main-content">
+        <div class="comanda-selector" id="menu-comandas">
+          <!-- Botões das comandas gerados pelo JS -->
+        </div>
+
+        <div class="content-area">
+          <div class="input-group">
+            <label for="numeroComanda">Comanda:</label>
+            <input type="text" id="numeroComanda" readonly>
+          </div>
+
+          <div class="input-group">
+            <label for="nomeCliente">Cliente:</label>
+            <input type="text" id="nomeCliente" placeholder="Opcional">
+          </div>
+
+          <div class="input-group">
+            <label for="scanner">Escaneie os Códigos:</label>
+            <input type="text" id="scanner" autofocus placeholder="Pressione Enter">
+          </div>
+
+          <div class="quick-mode">
+            <input type="checkbox" id="modo-rapido">
+            <label for="modo-rapido">Modo Rápido</label>
+          </div>
+
+          <div id="feedback" class="feedback-message"></div>
+
+          <div class="scanned-items">
+            <label>Itens Escaneados:</label>
+            <div id="lista-codigos" class="items-list">
+              <div class="empty-state">Nenhum item escaneado</div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button onclick="imprimirComanda()" class="btn-print">Imprimir</button>
+            <button onclick="mostrarQRCode()" class="btn-qrcode">Ver QR Code</button>
+            <button onclick="testarImpressora()" class="btn-test">Testar</button>
+            <button onclick="limparTodasComandas()" class="btn-clear">Limpar Todas</button>
+          </div>
+        </div>
+      </div>
+
+      <footer>
+        <img src="logo-mini.jpg" class="footer-logo" alt="Logo Tropicana Mini">
+        <p>by fernandofam2025</p>
+      </footer>
+    </div>
+
+    <div class="menu-lateral">
+      <button class="menu-toggle" id="bebidas-toggle">
+        <span><i class="fas fa-wine-bottle"></i> Bebidas</span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+      
+      <div class="menu-content" id="bebidas-content"></div>
+      
+      <button class="menu-toggle" id="salgados-toggle">
+        <span><i class="fas fa-hamburger"></i> Salgados</span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+      
+      <div class="menu-content" id="salgados-content"></div>
+    </div>
+  </div>
+
+  <!-- Modal do QR Code -->
+  <div id="modal-qrcode" class="modal-qrcode">
+    <div class="modal-qrcode-content">
+      <h2>QR Code da Comanda <span id="qrcode-numero"></span></h2>
+      <div id="qrcode-container"></div>
+      <div class="url-texto" id="qrcode-url"></div>
+      <p style="font-size:12px;color:#666;">Imprima este QR Code na comanda física</p>
+      <button onclick="fecharQRCode()">Fechar</button>
+    </div>
+  </div>
+
+  <script>
+    const listaContainer = document.getElementById("lista-codigos");
+    const scannerInput = document.getElementById("scanner");
+    const numeroComanda = document.getElementById("numeroComanda");
+    const modoRapido = document.getElementById("modo-rapido");
+    const feedback = document.getElementById("feedback");
+    const bebidasToggle = document.getElementById("bebidas-toggle");
+    const bebidasContent = document.getElementById("bebidas-content");
+    const salgadosToggle = document.getElementById("salgados-toggle");
+    const salgadosContent = document.getElementById("salgados-content");
+    const menuComandas = document.getElementById("menu-comandas");
+
+    // Cache local das comandas (para exibição rápida)
+    let comandas = {};
+    const contadoresComandas = {};
+
+    // URL base para os QR Codes
+    const URL_BASE = window.location.origin;
+
+    // ============================================================
+    // API - Comunicação com as Netlify Functions
+    // ============================================================
+    async function apiLerComanda(num) {
+      try {
+        const res = await fetch(`/api/comanda/${num}`);
+        if (!res.ok) return [];
+        return await res.json();
+      } catch (err) {
+        console.error("Erro ao ler comanda:", err);
+        return [];
+      }
+    }
+
+    async function apiAdicionarItem(num, codigo) {
+      try {
+        const res = await fetch(`/api/comanda/${num}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode: codigo })
+        });
+        return await res.json();
+      } catch (err) {
+        console.error("Erro ao adicionar item:", err);
+        return null;
+      }
+    }
+
+    async function apiRemoverItem(num, index) {
+      try {
+        const res = await fetch(`/api/comanda/${num}/item/${index}`, {
+          method: 'DELETE'
+        });
+        return await res.json();
+      } catch (err) {
+        console.error("Erro ao remover item:", err);
+        return null;
+      }
+    }
+
+    async function apiLimparComanda(num) {
+      try {
+        const res = await fetch(`/api/comanda/${num}`, {
+          method: 'DELETE'
+        });
+        return await res.json();
+      } catch (err) {
+        console.error("Erro ao limpar comanda:", err);
+        return null;
+      }
+    }
+
+    // ============================================================
+    // Interface
+    // ============================================================
+    function atualizarContadores() {
+      for (let i = 1; i <= 10; i++) {
+        if (contadoresComandas[i]) {
+          contadoresComandas[i].textContent = comandas[i] ? comandas[i].length : 0;
+        }
+      }
+    }
+
+    // Gerar botões das comandas
+    for (let i = 1; i <= 10; i++) {
+      const btnContainer = document.createElement("div");
+
+      const btn = document.createElement("button");
+      btn.textContent = i.toString().padStart(2,'0');
+      btn.addEventListener("click", () => selecionarComanda(i));
+      btn.style.marginRight = "5px";
+
+      const contador = document.createElement("span");
+      contador.textContent = "0";
+
+      const btnLimpar = document.createElement("button");
+      btnLimpar.textContent = "Limpar";
+      btnLimpar.addEventListener("click", () => limparComandaIndividual(i));
+
+      btnContainer.appendChild(btn);
+      btnContainer.appendChild(contador);
+      btnContainer.appendChild(btnLimpar);
+      menuComandas.appendChild(btnContainer);
+
+      contadoresComandas[i] = contador;
+    }
+
+    // ============================================================
+    // Menu de produtos
+    // ============================================================
+    const bebidas = [
+      { codigo: "7898263240034", nome: "MACROVITA 300ml" },
+      { codigo: "7894900011609", nome: "COCA COLA 600ml" },
+      { codigo: "7894900701609", nome: "COCA COLA ZERO 600ml" },
+      { codigo: "78933873", nome: "COCA COLA MINI ZERO" },
+      { codigo: "78906901", nome: "COCA COLA MINI" },
+      { codigo: "7899400010015", nome: "COCA COLA LATA" },
+      { codigo: "7894900700015", nome: "COCA COLA ZERO LATA" },
+      { codigo: "2002100004504", nome: "CAFÉ COM LEITE" },
+      { codigo: "2002400003504", nome: "MEIO CAFÉ COM LEITE" },
+      { codigo: "2084000004006", nome: "CAFÉ PRETO" },
+      { codigo: "2050400003000", nome: "MEIO CAFÉ PRETO" }
+    ];
+
+    const salgados = [
+      { codigo: "1000000000001", nome: "COXINHA" },
+      { codigo: "1000000000002", nome: "PASTEL DE CARNE" },
+      { codigo: "1000000000003", nome: "EMPADA DE FRANGO" },
+      { codigo: "1000000000004", nome: "KIBE" },
+      { codigo: "1000000000005", nome: "RISOLES" },
+      { codigo: "1000000000006", nome: "BOLINHA DE QUEIJO" },
+      { codigo: "1000000000007", nome: "ENROLADINHO DE SALSICHA" },
+      { codigo: "1000000000008", nome: "ESFIRRA" },
+      { codigo: "1000000000009", nome: "PÃO DE QUEIJO" },
+      { codigo: "1000000000010", nome: "TROUXINHA DE FRANGO" }
+    ];
+
+    function gerarMenuProdutos(produtos, container) {
+      container.innerHTML = '';
+      
+      produtos.forEach(produto => {
+        const produtoItem = document.createElement("div");
+        produtoItem.className = "produto-item";
+        
+        const produtoInfo = document.createElement("div");
+        produtoInfo.className = "produto-info";
+        
+        const nomeSpan = document.createElement("span");
+        nomeSpan.className = "produto-nome";
+        nomeSpan.textContent = produto.nome;
+        
+        const codigoSpan = document.createElement("span");
+        codigoSpan.className = "produto-codigo";
+        codigoSpan.textContent = produto.codigo;
+        
+        produtoInfo.appendChild(nomeSpan);
+        produtoInfo.appendChild(codigoSpan);
+        
+        const quantidadeControl = document.createElement("div");
+        quantidadeControl.className = "quantidade-control";
+        
+        const menosBtn = document.createElement("button");
+        menosBtn.className = "quantidade-btn";
+        menosBtn.textContent = "-";
+        
+        const quantidadeValue = document.createElement("span");
+        quantidadeValue.className = "quantidade-value";
+        quantidadeValue.textContent = "1";
+        
+        const maisBtn = document.createElement("button");
+        maisBtn.className = "quantidade-btn";
+        maisBtn.textContent = "+";
+        
+        const adicionarBtn = document.createElement("button");
+        adicionarBtn.className = "adicionar-btn";
+        adicionarBtn.textContent = "Adicionar à Comanda";
+        
+        quantidadeControl.appendChild(menosBtn);
+        quantidadeControl.appendChild(quantidadeValue);
+        quantidadeControl.appendChild(maisBtn);
+        
+        produtoItem.appendChild(produtoInfo);
+        produtoItem.appendChild(quantidadeControl);
+        produtoItem.appendChild(adicionarBtn);
+        
+        container.appendChild(produtoItem);
+        
+        let quantidade = 1;
+        
+        menosBtn.addEventListener("click", () => {
+          if (quantidade > 1) {
+            quantidade--;
+            quantidadeValue.textContent = quantidade;
+          }
+        });
+        
+        maisBtn.addEventListener("click", () => {
+          quantidade++;
+          quantidadeValue.textContent = quantidade;
+        });
+        
+        adicionarBtn.addEventListener("click", async () => {
+          const comandaAtual = parseInt(numeroComanda.value, 10);
+          if (!comandaAtual) {
+            feedback.textContent = "Selecione uma comanda primeiro!";
+            setTimeout(() => feedback.textContent = "", 2000);
+            return;
+          }
+          
+          // Adiciona cada unidade via API
+          for (let i = 0; i < quantidade; i++) {
+            await apiAdicionarItem(comandaAtual, produto.codigo);
+          }
+          
+          // Recarrega a comanda do servidor
+          comandas[comandaAtual] = await apiLerComanda(comandaAtual);
+          atualizarLista();
+          atualizarContadores();
+          feedback.textContent = `${quantidade} ${produto.nome} adicionado(s)!`;
+          setTimeout(() => feedback.textContent = "", 2000);
+          
+          quantidade = 1;
+          quantidadeValue.textContent = "1";
+          scannerInput.focus();
+        });
+      });
+    }
+
+    gerarMenuProdutos(bebidas, bebidasContent);
+    gerarMenuProdutos(salgados, salgadosContent);
+
+    // Toggle dos menus
+    bebidasToggle.addEventListener("click", () => {
+      bebidasToggle.classList.toggle("expanded");
+      bebidasContent.classList.toggle("expanded");
+      if (salgadosContent.classList.contains("expanded")) {
+        salgadosToggle.classList.remove("expanded");
+        salgadosContent.classList.remove("expanded");
+      }
+    });
+
+    salgadosToggle.addEventListener("click", () => {
+      salgadosToggle.classList.toggle("expanded");
+      salgadosContent.classList.toggle("expanded");
+      if (bebidasContent.classList.contains("expanded")) {
+        bebidasToggle.classList.remove("expanded");
+        bebidasContent.classList.remove("expanded");
+      }
+    });
+
+    // ============================================================
+    // Comandas
+    // ============================================================
+    async function selecionarComanda(num) {
+      numeroComanda.value = num.toString().padStart(2,'0');
+      comandas[num] = await apiLerComanda(num);
+      atualizarLista();
+      contadoresComandas[num].textContent = comandas[num].length;
+      feedback.textContent = "";
+      scannerInput.focus();
+    }
+
+    scannerInput.addEventListener("keydown", async function(e){
+      if(e.key==="Enter"){
+        const codigo = scannerInput.value.trim();
+        if(codigo && numeroComanda.value){
+          const comandaAtual = parseInt(numeroComanda.value,10);
+          await apiAdicionarItem(comandaAtual, codigo);
+          scannerInput.value="";
+          comandas[comandaAtual] = await apiLerComanda(comandaAtual);
+          atualizarLista();
+          if(modoRapido.checked){
+            feedback.textContent = `Item ${codigo} adicionado!`;
+            setTimeout(()=>feedback.textContent="",1000);
+          }
+          contadoresComandas[comandaAtual].textContent = comandas[comandaAtual].length;
+          scannerInput.focus();
+        }
+      }
+    });
+
+    function atualizarLista(){
+      const comandaAtual = parseInt(numeroComanda.value,10);
+      listaContainer.innerHTML="";
+      if(!comandas[comandaAtual]||comandas[comandaAtual].length===0){
+        const empty=document.createElement("div");
+        empty.className="empty-state";
+        empty.textContent="Nenhum item escaneado";
+        listaContainer.appendChild(empty);
+        return;
+      }
+      comandas[comandaAtual].forEach((codigo,index)=>{
+        const item=document.createElement("div");
+        item.className="scanned-item";
+        
+        const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+        svg.id=`barcode-${comandaAtual}-${index}`;
+        JsBarcode(svg,codigo,{format:"CODE128",width:1.5,height:50,displayValue:true,fontSize:10});
+        
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-btn";
+        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+        deleteBtn.title = "Remover item";
+        deleteBtn.addEventListener("click", () => removerItem(comandaAtual, index));
+        
+        item.appendChild(svg);
+        item.appendChild(deleteBtn);
+        listaContainer.appendChild(item);
+      });
+    }
+
+    async function removerItem(comandaNum, index) {
+      if (confirm("Deseja remover este item?")) {
+        await apiRemoverItem(comandaNum, index);
+        comandas[comandaNum] = await apiLerComanda(comandaNum);
+        atualizarLista();
+        atualizarContadores();
+        feedback.textContent = "Item removido com sucesso!";
+        setTimeout(() => feedback.textContent = "", 2000);
+        scannerInput.focus();
+      }
+    }
+
+    async function limparComandaIndividual(num){
+      if(!comandas[num]||comandas[num].length===0){ 
+        feedback.textContent="Comanda já está vazia!"; 
+        return; 
+      }
+      if(confirm(`Deseja realmente limpar a comanda ${num}?`)){
+        await apiLimparComanda(num);
+        comandas[num]=[];
+        if(parseInt(numeroComanda.value,10)===num) atualizarLista();
+        contadoresComandas[num].textContent="0";
+        feedback.textContent=`Comanda ${num} limpa!`;
+        scannerInput.focus();
+      }
+    }
+
+    async function limparTodasComandas(){
+      if(confirm("Deseja realmente limpar TODAS as comandas?")){
+        for(let num = 1; num <= 10; num++){
+          await apiLimparComanda(num);
+          comandas[num]=[];
+        }
+        atualizarLista();
+        atualizarContadores();
+        feedback.textContent="Todas as comandas foram limpas!";
+        scannerInput.focus();
+      }
+    }
+
+    // ============================================================
+    // Impressão
+    // ============================================================
+    function imprimirComanda(){
+      const comandaAtual=parseInt(numeroComanda.value,10);
+      if(!comandas[comandaAtual]||comandas[comandaAtual].length===0){ 
+        feedback.textContent="Nenhum item para imprimir!"; 
+        return; 
+      }
+      const printWindow=window.open('','', 'width=300,height=600');
+      printWindow.document.write('<html><head><title>Comanda</title></head><body>');
+      printWindow.document.write(`<h3>Comanda ${numeroComanda.value}</h3>`);
+      comandas[comandaAtual].forEach((codigo,index)=>{
+        const svg=document.getElementById(`barcode-${comandaAtual}-${index}`);
+        const xml=new XMLSerializer().serializeToString(svg);
+        const svg64=btoa(xml);
+        const imgSrc='data:image/svg+xml;base64,'+svg64;
+        printWindow.document.write(`<img src="${imgSrc}" style="width:90%; max-width:220px;"><br>`);
+      });
+      const agora=new Date();
+      const dataHora=agora.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+      printWindow.document.write(`<p style="font-size:10px;margin-top:10px;">${dataHora}</p>`);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.onload=()=>{printWindow.focus();printWindow.print();printWindow.close();}
+    }
+
+    function testarImpressora(){
+      const testWindow=window.open('','','width=300,height=600');
+      testWindow.document.write('<html><head><title>Teste Impressora</title></head><body>');
+      testWindow.document.write('<p>Teste de impressão OK</p>');
+      testWindow.document.close();
+      testWindow.focus();
+      testWindow.print();
+      testWindow.close();
+      scannerInput.focus();
+    }
+
+    // ============================================================
+    // QR Code
+    // ============================================================
+    function mostrarQRCode() {
+      const comandaAtual = numeroComanda.value;
+      if (!comandaAtual || comandaAtual === "") {
+        alert("Selecione uma comanda primeiro!");
+        return;
+      }
+      
+      const url = `${URL_BASE}/comanda/${comandaAtual}`;
+      
+      document.getElementById("qrcode-numero").textContent = comandaAtual;
+      document.getElementById("qrcode-url").textContent = url;
+      
+      // Limpa o container antes de gerar novo QR Code
+      const container = document.getElementById("qrcode-container");
+      container.innerHTML = "";
+      
+      new QRCode(container, {
+        text: url,
+        width: 250,
+        height: 250,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      
+      document.getElementById("modal-qrcode").style.display = "flex";
+    }
+
+    function fecharQRCode() {
+      document.getElementById("modal-qrcode").style.display = "none";
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById("modal-qrcode").addEventListener("click", function(e) {
+      if (e.target === this) {
+        fecharQRCode();
+      }
+    });
+
+    // ============================================================
+    // Inicialização
+    // ============================================================
+    selecionarComanda(1);
+  </script>
+</body>
+</html>

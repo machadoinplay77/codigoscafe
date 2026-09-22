@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Comanda</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #2196F3; }
+    .item { padding: 10px; background: #f9f9f9; margin: 5px 0; border-radius: 5px; font-family: monospace; }
+    .vazio { color: #999; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Comanda <span id="id"></span></h1>
+    <div id="itens"></div>
+  </div>
+
+  <script>
+    // Pega o ID da URL: /comanda/01 → 01
+    const partes = window.location.pathname.split('/');
+    const comandaId = partes[partes.length - 1];
+
+    document.getElementById('id').textContent = comandaId;
+
+    fetch(`/api/comanda/${comandaId}`)
+      .then(r => r.json())
+      .then(itens => {
+        const div = document.getElementById('itens');
+        if (!itens || itens.length === 0) {
+          div.innerHTML = '<p class="vazio">Nenhum item nesta comanda</p>';
+        } else {
+          div.innerHTML = itens.map(c => `<div class="item">${c}</div>`).join('');
+        }
+      })
+      .catch(err => {
+        document.getElementById('itens').innerHTML = '<p class="vazio">Erro ao carregar</p>';
+      });
+  </script>
+</body>
+</html>
