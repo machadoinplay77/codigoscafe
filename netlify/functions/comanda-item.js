@@ -1,3 +1,4 @@
+```javascript
 const { getStore } = require("@netlify/blobs");
 
 exports.handler = async (event) => {
@@ -12,9 +13,12 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: "" };
   }
 
-  const params = event.queryStringParameters || {};
-  const comandaId = params.id;
-  const index = parseInt(params.index, 10);
+  // Pega ID da comanda e index do PATH
+  // Exemplo: /.netlify/functions/comanda-item/01/2
+  const partes = event.path.split("/");
+
+  const index = parseInt(partes[partes.length - 1], 10);
+  const comandaId = partes[partes.length - 2];
 
   if (!comandaId || isNaN(index)) {
     return {
@@ -44,15 +48,22 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ sucesso: true, itens: dados })
+      body: JSON.stringify({
+        sucesso: true,
+        itens: dados
+      })
     };
 
   } catch (err) {
     console.error("Erro ao remover item:", err);
+
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({
+        error: err.message
+      })
     };
   }
 };
+```
