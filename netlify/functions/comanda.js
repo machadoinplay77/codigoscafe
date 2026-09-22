@@ -1,85 +1,77 @@
-const { getStore } = require("@netlify/blobs");
+import { getStore } from "@netlify/blobs";
 
-exports.handler = async (event) => {
+export default async (request, context) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json"
+    "Content-Type": "application/json",
   };
 
-  if (event.httpMethod === "OPTIONS") {
-    return { statusCode: 200, headers, body: "" };
+  if (request.method === "OPTIONS") {
+    return new Response("", { status: 200, headers });
   }
 
-  const partes = event.path.split("/");
+  // O contexto do Netlify v2 fornece o path da URL
+  const url = new URL(request.url);
+  const partes = url.pathname.split("/");
   const comandaId = partes[partes.length - 1];
 
   if (!comandaId || comandaId === "comanda") {
-    return {
-      statusCode: 400,
+    return new Response(JSON.stringify({ error: "ID da comanda nao informado" }), {
+      status: 400,
       headers,
-      body: JSON.stringify({ error: "ID da comanda nao informado" })
-    };
+    });
   }
 
+  // getStore é chamado DENTRO do handler, isso é crucial
   const store = getStore("comandas");
   const chave = "comanda-" + comandaId;
 
   try {
-    if (event.httpMethod === "GET") {
+    if (request.method === "GET") {
       const dados = await store.get(chave, { type: "json" });
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(dados || [])
-      };
+      return new Response(JSON.stringify(dados || []), { status: 200, headers });
     }
 
-    if (event.httpMethod === "POST") {
-      const body = JSON.parse(event.body || "{}");
+    if (request.method === "POST") {
+      const body = await request.json();
       const barcode = body.barcode;
 
       if (!barcode) {
-        return {
-          statusCode: 400,
+        return new Response(JSON.stringify({ error: "Codigo de barras nao informado" }), {
+          status: 400,
           headers,
-          body: JSON.stringify({ error: "Codigo de barras nao informado" })
-        };
+        });
       }
 
       const dados = (await store.get(chave, { type: "json" })) || [];
       dados.push(barcode);
       await store.setJSON(chave, dados);
 
-      return {
-        statusCode: 200,
+      return new Response(JSON.stringify({ sucesso: true, itens: dados }), {
+        status: 200,
         headers,
-        body: JSON.stringify({ sucesso: true, itens: dados })
-      };
+      });
     }
 
-    if (event.httpMethod === "DELETE") {
+    if (request.method === "DELETE") {
       await store.setJSON(chave, []);
-      return {
-        statusCode: 200,
+      return new Response(JSON.stringify({ sucesso: true, itens: [] }), {
+        status: 200,
         headers,
-        body: JSON.stringify({ sucesso: true, itens: [] })
-      };
+      });
     }
 
-    return {
-      statusCode: 405,
+    return new Response(JSON.stringify({ error: "Metodo nao permitido" }), {
+      status: 405,
       headers,
-      body: JSON.stringify({ error: "Metodo nao permitido" })
-    };
-
+    });
   } catch (err) {
     console.error("Erro na funcao comanda:", err);
-    return {
-      statusCode: 500,
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
       headers,
-      body: JSON.stringify({ error: err.message })
-    };
+    });
   }
 };
