@@ -1,4 +1,3 @@
-```javascript
 const { getStore } = require("@netlify/blobs");
 
 exports.handler = async (event) => {
@@ -13,8 +12,6 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers, body: "" };
   }
 
-  // Pega o ID da comanda do PATH da URL
-  // Exemplo: /.netlify/functions/comanda/01
   const partes = event.path.split("/");
   const comandaId = partes[partes.length - 1];
 
@@ -22,18 +19,16 @@ exports.handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ error: "ID da comanda não informado" })
+      body: JSON.stringify({ error: "ID da comanda nao informado" })
     };
   }
 
   const store = getStore("comandas");
-  const chave = `comanda-${comandaId}`;
+  const chave = "comanda-" + comandaId;
 
   try {
-    // GET - Retorna a lista
     if (event.httpMethod === "GET") {
       const dados = await store.get(chave, { type: "json" });
-
       return {
         statusCode: 200,
         headers,
@@ -41,7 +36,6 @@ exports.handler = async (event) => {
       };
     }
 
-    // POST - Adiciona um código
     if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body || "{}");
       const barcode = body.barcode;
@@ -50,58 +44,42 @@ exports.handler = async (event) => {
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: "Código de barras não informado" })
+          body: JSON.stringify({ error: "Codigo de barras nao informado" })
         };
       }
 
       const dados = (await store.get(chave, { type: "json" })) || [];
-
       dados.push(barcode);
-
       await store.setJSON(chave, dados);
 
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({
-          sucesso: true,
-          itens: dados
-        })
+        body: JSON.stringify({ sucesso: true, itens: dados })
       };
     }
 
-    // DELETE - Limpa a comanda
     if (event.httpMethod === "DELETE") {
       await store.setJSON(chave, []);
-
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify({
-          sucesso: true,
-          itens: []
-        })
+        body: JSON.stringify({ sucesso: true, itens: [] })
       };
     }
 
     return {
       statusCode: 405,
       headers,
-      body: JSON.stringify({
-        error: "Método não permitido"
-      })
+      body: JSON.stringify({ error: "Metodo nao permitido" })
     };
 
   } catch (err) {
-    console.error("Erro na função comanda:", err);
-
+    console.error("Erro na funcao comanda:", err);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        error: err.message
-      })
+      body: JSON.stringify({ error: err.message })
     };
   }
 };
-```
