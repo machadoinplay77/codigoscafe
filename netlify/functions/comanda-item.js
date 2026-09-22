@@ -1,55 +1,65 @@
-import { getStore } from "@netlify/blobs";
+const { getStore } = require("@netlify/blobs");
 
-export default async (request, context) => {
+exports.handler = async (event) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
-    "Content-Type": "application/json",
+    "Content-Type": "application/json"
   };
 
-  if (request.method === "OPTIONS") {
-    return new Response("", { status: 200, headers });
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 200, headers, body: "" };
   }
 
-  const url = new URL(request.url);
-  const partes = url.pathname.split("/");
-  const index = parseInt(partes[partes.length - 1], 10);
-  const comandaId = partes[partes.length - 2];
+  const partes = event.path.split("/");
+  let index = parseInt(partes[partes.length - 1], 10);
+  let comandaId = partes[partes.length - 2];
+
+  // Remove possíveis query strings
+  if (comandaId && comandaId.includes("?")) {
+    comandaId = comandaId.split("?")[0];
+  }
+  if (!isNaN(index) && partes[partes.length - 1].includes("?")) {
+    index = parseInt(partes[partes.length - 1].split("?")[0], 10);
+  }
 
   if (!comandaId || isNaN(index)) {
-    return new Response(JSON.stringify({ error: "Parametros invalidos" }), {
-      status: 400,
+    return {
+      statusCode: 400,
       headers,
-    });
+      body: JSON.stringify({ error: "Parametros invalidos", path: event.path })
+    };
   }
 
-  // getStore é chamado DENTRO do handler, isso é crucial
-  const store = getStore("comandas");
-  const chave = "comanda-" + comandaId;
-
   try {
+    const store = getStore({ name: "comandas", consistency: "strong" });
+    const chave = "comanda-" + comandaId;
     const dados = (await store.get(chave, { type: "json" })) || [];
 
     if (index < 0 || index >= dados.length) {
-      return new Response(JSON.stringify({ error: "Item nao encontrado" }), {
-        status: 404,
+      return {
+        statusCode: 404,
         headers,
-      });
+        body: JSON.stringify({ error: "Item nao encontrado" })
+      };
     }
 
     dados.splice(index, 1);
     await store.setJSON(chave, dados);
 
-    return new Response(JSON.stringify({ sucesso: true, itens: dados }), {
-      status: 200,
+    return {
+      statusCode: 200,
       headers,
-    });
+      body: JSON.stringify({ sucesso: true, itens: dados })
+    };
+
   } catch (err) {
     console.error("Erro ao remover item:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+    return {
+      statusCode: 500,
       headers,
-    });
+      body: JSON.stringify({ error: err.message })
+    };
   }
 };
