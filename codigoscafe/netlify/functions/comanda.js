@@ -23,7 +23,10 @@ export default async (request, context) => {
     });
   }
 
-  const store = getStore("comandas");
+  // "strong" evita que duas leituras/escritas seguidas (ex.: dois códigos
+  // escaneados em sequência rápida) peguem uma versão desatualizada da
+  // comanda e acabem sobrescrevendo itens já salvos.
+  const store = getStore({ name: "comandas", consistency: "strong" });
   const chave = "comanda-" + comandaId;
 
   try {
