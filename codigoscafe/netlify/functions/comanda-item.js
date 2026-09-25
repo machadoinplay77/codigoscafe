@@ -24,7 +24,10 @@ export default async (request, context) => {
     });
   }
 
-  const store = getStore("comandas");
+  // "strong" garante que a leitura antes de remover o item pegue a versão
+  // mais recente da comanda, evitando remover o item errado por causa de
+  // um índice desatualizado.
+  const store = getStore({ name: "comandas", consistency: "strong" });
   const chave = "comanda-" + comandaId;
 
   try {
