@@ -13,11 +13,7 @@ export default async (request, context) => {
   }
 
   const url = new URL(request.url);
-  const partes = url.pathname.split("/").filter(Boolean);
-
-  // A URL chega como: /.netlify/functions/comanda-item/{id}?codigo=XXXX
-  // Extrai o ID da comanda (último segmento)
-  const comandaId = partes[partes.length - 1];
+  const comandaId = context.params.id;
   const codigo = url.searchParams.get("codigo");
 
   if (!comandaId || !codigo) {
@@ -56,4 +52,11 @@ export default async (request, context) => {
       headers,
     });
   }
+};
+
+// Registra a rota diretamente na function, sem depender de redirect no netlify.toml.
+// IMPORTANTE: nunca use "/.netlify/..." aqui, esse prefixo é reservado e é ignorado pela Netlify.
+export const config = {
+  path: "/api/remover-item/:id",
+  method: "DELETE",
 };
