@@ -13,8 +13,10 @@ export default async (request, context) => {
   }
 
   const url = new URL(request.url);
-  const comandaId = context.params.id;
+  const partes = url.pathname.split("/").filter(Boolean);
+  const comandaId = (context.params && context.params.id) || partes[partes.length - 1];
   const codigo = url.searchParams.get("codigo");
+  console.log("DEBUG remover-item:", { pathname: url.pathname, contextParams: context.params, comandaId, codigo });
 
   if (!comandaId || !codigo) {
     return new Response(JSON.stringify({ error: "Parametros invalidos" }), {
@@ -32,6 +34,7 @@ export default async (request, context) => {
     // Remove a PRIMEIRA ocorrência do código
     const idx = dados.indexOf(codigo);
     if (idx === -1) {
+      console.log("DEBUG item nao encontrado:", { chave, dados, codigo });
       return new Response(JSON.stringify({ error: "Item nao encontrado", itens: dados }), {
         status: 404,
         headers,
