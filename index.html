@@ -766,9 +766,9 @@
       }
     }
 
-    async function apiRemoverItem(num, index) {
+    async function apiRemoverItem(num, codigo) {
   try {
-    const res = await fetch(`/.netlify/functions/comanda-item/${num}/${index}`, {
+    const res = await fetch(`/.netlify/functions/comanda-item/${num}?codigo=${encodeURIComponent(codigo)}`, {
       method: 'DELETE'
     });
     if (!res.ok) {
@@ -1052,16 +1052,16 @@
       });
     }
 
-    async function removerItem(comandaNum, index) {
-      if (!confirm("Deseja remover este item?")) return;
-      await apiRemoverItem(comandaNum, index);
-      comandas[comandaNum] = await apiLerComanda(comandaNum);
-      atualizarLista();
-      atualizarContadores();
-      feedback.textContent = "Item removido com sucesso!";
-      setTimeout(() => feedback.textContent = "", 2000);
-      scannerInput.focus();
-    }
+    async function removerItem(comandaNum, codigo) {
+  if (!confirm("Deseja remover este item?")) return;
+  await apiRemoverItem(comandaNum, codigo);
+  comandas[comandaNum] = await apiLerComanda(comandaNum);
+  atualizarLista();
+  atualizarContadores();
+  feedback.textContent = "Item removido com sucesso!";
+  setTimeout(() => feedback.textContent = "", 2000);
+  scannerInput.focus();
+}
 
     async function limparComandaIndividual(num){
       if(!comandas[num]||comandas[num].length===0){
