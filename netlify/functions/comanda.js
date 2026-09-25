@@ -13,7 +13,7 @@ export default async (request, context) => {
   }
 
   const url = new URL(request.url);
-  const partes = url.pathname.split("/");
+  const partes = url.pathname.split("/").filter(Boolean);
   const comandaId = partes[partes.length - 1];
 
   if (!comandaId || comandaId === "comanda") {
@@ -23,7 +23,7 @@ export default async (request, context) => {
     });
   }
 
-  const store = getStore("comandas");
+  const store = getStore({ name: "comandas", consistency: "strong" });
   const chave = "comanda-" + comandaId;
 
   try {
@@ -35,6 +35,7 @@ export default async (request, context) => {
     if (request.method === "POST") {
       const body = await request.json();
       const barcode = body.barcode;
+      const quantidade = body.quantidade || 1;
 
       if (!barcode) {
         return new Response(JSON.stringify({ error: "Codigo de barras nao informado" }), {
@@ -44,7 +45,9 @@ export default async (request, context) => {
       }
 
       const dados = (await store.get(chave, { type: "json" })) || [];
-      dados.push(barcode);
+      for (let i = 0; i < quantidade; i++) {
+        dados.push(barcode);
+      }
       await store.setJSON(chave, dados);
 
       return new Response(JSON.stringify({ sucesso: true, itens: dados }), {
