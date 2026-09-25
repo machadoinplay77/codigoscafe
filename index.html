@@ -1,469 +1,1020 @@
-<script>
-  const listaContainer = document.getElementById("lista-codigos");
-  const scannerInput = document.getElementById("scanner");
-  const numeroComanda = document.getElementById("numeroComanda");
-  const modoRapido = document.getElementById("modo-rapido");
-  const feedback = document.getElementById("feedback");
-  const bebidasToggle = document.getElementById("bebidas-toggle");
-  const bebidasContent = document.getElementById("bebidas-content");
-  const salgadosToggle = document.getElementById("salgados-toggle");
-  const salgadosContent = document.getElementById("salgados-content");
-  const menuComandas = document.getElementById("menu-comandas");
-  const headerStatus = document.getElementById("header-status");
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comanda Tropicana</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
-  let comandas = {};
-  const contadoresComandas = {};
-  const URL_BASE = window.location.origin;
-
-  // ============================================================
-  // API
-  // ============================================================
-  async function apiLerComanda(num) {
-    try {
-      const res = await fetch(`/api/comanda/${num}`, { cache: "no-store" });
-      if (!res.ok) return [];
-      const dados = await res.json();
-      return Array.isArray(dados) ? dados : [];
-    } catch (err) {
-      console.error("Erro ao ler comanda:", err);
-      return [];
+    :root {
+      --teal-950: #0B2E2C;
+      --teal-900: #123B37;
+      --teal-800: #175048;
+      --teal-700: #1D655A;
+      --mango-500: #F5A524;
+      --mango-600: #DC8A0E;
+      --coral-500: #E8574B;
+      --coral-600: #CC4238;
+      --cream-50: #FAF7F1;
+      --paper: #FFFFFF;
+      --ink-900: #16231F;
+      --ink-600: #4B5B54;
+      --ink-400: #8A968F;
+      --line: #E6E2D6;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --shadow-sm: 0 1px 2px rgba(11,46,44,.08);
+      --shadow-md: 0 10px 28px rgba(11,46,44,.14);
     }
-  }
 
-  async function apiAdicionarItem(num, codigo, quantidade = 1) {
-    try {
-      const res = await fetch(`/api/comanda/${num}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ barcode: codigo, quantidade })
-      });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch (err) {
-      console.error("Erro ao adicionar item:", err);
-      return null;
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--cream-50);
+      color: var(--ink-900);
     }
-  }
 
-  async function apiRemoverItem(num, index) {
-    try {
-      const res = await fetch(`/api/comanda/${num}/item/${index}`, {
-        method: 'DELETE'
-      });
-      if (!res.ok) {
-        // Mesmo se der 404, tenta ler novamente
+    .app-shell {
+      display: grid;
+      grid-template-columns: 230px minmax(0,1fr) 300px;
+      grid-template-areas:
+        "header header header"
+        "tickets workspace catalog"
+        "footer footer footer";
+      gap: 18px;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 18px;
+      min-height: 100vh;
+      align-items: start;
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "header"
+          "tickets"
+          "workspace"
+          "catalog"
+          "footer";
+      }
+    }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .panel h2 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 15px;
+      margin: 0 0 14px;
+      color: var(--teal-900);
+    }
+
+    .app-header {
+      grid-area: header;
+      background: linear-gradient(135deg, var(--teal-900), var(--teal-700));
+      color: #fff;
+      border-radius: var(--radius-lg);
+      padding: 18px 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-md);
+    }
+
+    .app-header-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .app-header-brand img.logo {
+      max-width: 52px;
+      max-height: 52px;
+      border-radius: 10px;
+      background: #fff;
+      padding: 4px;
+      object-fit: contain;
+    }
+
+    .app-header-brand h1 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .app-header-tag {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: rgba(255,255,255,.72);
+    }
+
+    .app-header-status {
+      background: rgba(255,255,255,.14);
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .tickets-panel { grid-area: tickets; }
+
+    .tickets-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .tickets-grid > div {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: var(--cream-50);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 10px 6px 8px;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .tickets-grid > div:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tickets-grid div button:first-child {
+      width: 100%;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      background: var(--paper);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--teal-900);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+
+    .tickets-grid div button:first-child:hover {
+      background: var(--teal-800);
+      color: #fff;
+    }
+
+    .tickets-grid div button:first-child.active {
+      background: var(--mango-500);
+      color: var(--teal-950);
+    }
+
+    .tickets-grid div span {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: var(--coral-500);
+      color: #fff;
+      font-weight: 700;
+      font-size: 10px;
+      min-width: 18px;
+      height: 18px;
+      line-height: 18px;
+      text-align: center;
+      border-radius: 999px;
+      margin: 0;
+    }
+
+    .tickets-grid div button:last-child {
+      background: none;
+      border: none;
+      color: var(--ink-400);
+      font-size: 10px;
+      cursor: pointer;
+      padding: 2px 4px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .tickets-grid div button:last-child:hover {
+      color: var(--coral-500);
+      text-decoration: underline;
+    }
+
+    .workspace { grid-area: workspace; }
+
+    .input-group { margin-bottom: 14px; }
+
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-600);
+      margin-bottom: 5px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 9px 10px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--cream-50);
+      color: var(--ink-900);
+    }
+
+    .input-group input:focus {
+      outline: 2px solid var(--teal-700);
+      outline-offset: 1px;
+    }
+
+    .comanda-atual input {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      border: none;
+      background: transparent;
+      color: var(--teal-900);
+      padding: 0;
+    }
+
+    .input-icon-wrap { position: relative; }
+
+    .input-icon-wrap i {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-400);
+      font-size: 13px;
+    }
+
+    .input-icon-wrap input { padding-left: 34px; }
+
+    .quick-mode {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .quick-mode > span {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-600);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 38px;
+      height: 21px;
+      flex-shrink: 0;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .switch-track {
+      position: absolute;
+      inset: 0;
+      background: var(--line);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .switch-track::before {
+      content: "";
+      position: absolute;
+      height: 15px;
+      width: 15px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform .2s;
+    }
+
+    .switch input:checked + .switch-track { background: var(--mango-500); }
+    .switch input:checked + .switch-track::before { transform: translateX(17px); }
+
+    .feedback-message {
+      color: var(--teal-700);
+      margin-bottom: 12px;
+      min-height: 18px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .scanned-items label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-600);
+      margin-bottom: 6px;
+    }
+
+    .items-list {
+      border: 1px solid var(--line);
+      min-height: 110px;
+      max-height: 320px;
+      padding: 8px;
+      background: var(--cream-50);
+      border-radius: var(--radius-md);
+      overflow-y: auto;
+    }
+
+    .scanned-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      background: var(--paper);
+      margin-bottom: 6px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .scanned-item:last-child { margin-bottom: 0; }
+
+    .scanned-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .scanned-item-nome {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink-900);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .scanned-item-codigo {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--ink-400);
+    }
+
+    .barcode-svg-print {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+    }
+
+    .delete-btn {
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      background-color: var(--coral-500);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 11px;
+      transition: background 0.2s;
+    }
+
+    .delete-btn:hover { background-color: var(--coral-600); }
+
+    .empty-state {
+      color: var(--ink-400);
+      font-style: italic;
+      font-size: 13px;
+      padding: 8px 4px;
+    }
+
+    .action-buttons {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .action-buttons button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      font-weight: 600;
+      font-size: 13px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: transform 0.15s, filter .15s;
+    }
+
+    .action-buttons button:hover { transform: translateY(-1px); }
+
+    .btn-print { background-color: var(--teal-800); color: white; }
+    .btn-print:hover { filter: brightness(1.1); }
+
+    .btn-test { background: var(--paper); color: var(--ink-900); border: 1px solid var(--line) !important; }
+    .btn-test:hover { background: var(--cream-50); }
+
+    .btn-clear { background-color: var(--coral-500); color: white; }
+    .btn-clear:hover { filter: brightness(1.08); }
+
+    .btn-qrcode { background-color: var(--mango-500); color: var(--teal-950); }
+    .btn-qrcode:hover { filter: brightness(1.05); }
+
+    .catalog-panel { grid-area: catalog; }
+
+    .catalog-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .menu-toggle {
+      flex: 1;
+      padding: 10px 6px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--cream-50);
+      color: var(--ink-600);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      transition: background .15s, color .15s;
+    }
+
+    .menu-toggle.expanded { background: var(--teal-800); color: #fff; }
+
+    .menu-content {
+      display: none;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .menu-content.expanded { display: block; }
+
+    .produto-item {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: var(--cream-50);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+    }
+
+    .produto-info {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 8px;
+      gap: 4px;
+    }
+
+    .produto-nome {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink-900);
+    }
+
+    .produto-codigo {
+      font-size: 10px;
+      background: var(--paper);
+      padding: 3px 6px;
+      border-radius: 4px;
+      color: var(--ink-400);
+      font-family: monospace;
+      align-self: flex-start;
+    }
+
+    .quantidade-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .quantidade-btn {
+      width: 26px;
+      height: 26px;
+      background-color: var(--paper);
+      border: 1px solid var(--line);
+      color: var(--teal-900);
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background .15s, color .15s;
+    }
+
+    .quantidade-btn:hover { background-color: var(--teal-800); color: #fff; }
+
+    .quantidade-value {
+      font-weight: 700;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .adicionar-btn {
+      width: 100%;
+      padding: 8px;
+      background-color: var(--teal-800);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s;
+    }
+
+    .adicionar-btn:hover { background-color: var(--teal-700); }
+
+    footer {
+      grid-area: footer;
+      text-align: center;
+      color: var(--ink-400);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 4px 0 10px;
+    }
+
+    footer img { max-width: 26px; border-radius: 6px; }
+
+    .modal-qrcode {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(11,46,44,0.55);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-qrcode-content {
+      background: var(--paper);
+      padding: 28px;
+      border-radius: var(--radius-lg);
+      text-align: center;
+      max-width: 340px;
+      box-shadow: var(--shadow-md);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .modal-qrcode-content h2 {
+      margin-top: 0;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      color: var(--teal-800);
+      font-size: 18px;
+    }
+
+    .modal-qrcode-content #qrcode-container {
+      margin: 18px auto;
+      display: inline-block;
+      padding: 10px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+    }
+
+    .modal-qrcode-content .url-texto {
+      font-size: 11px;
+      color: var(--ink-400);
+      word-break: break-all;
+      margin: 10px 0;
+      font-family: monospace;
+    }
+
+    .modal-qrcode-content button {
+      margin-top: 12px;
+      padding: 9px 20px;
+      background: var(--coral-500);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .modal-qrcode-content button:hover { background: var(--coral-600); }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-brand">
+        <img src="logo.png" class="logo" alt="Logo Tropicana">
+        <div>
+          <h1>Comanda Tropicana</h1>
+          <p class="app-header-tag">Controle de comandas via código de barras</p>
+        </div>
+      </div>
+      <div class="app-header-status" id="header-status">Selecione uma comanda</div>
+    </header>
+
+    <div class="tickets-panel panel">
+      <h2>Comandas</h2>
+      <div class="tickets-grid" id="menu-comandas">
+        <!-- Botões das comandas gerados pelo JS -->
+      </div>
+    </div>
+
+    <div class="workspace panel">
+      <div class="input-group comanda-atual">
+        <label for="numeroComanda">Comanda ativa</label>
+        <input type="text" id="numeroComanda" readonly>
+      </div>
+
+      <div class="input-group">
+        <label for="nomeCliente">Cliente</label>
+        <input type="text" id="nomeCliente" placeholder="Opcional">
+      </div>
+
+      <div class="input-group">
+        <label for="scanner">Escaneie os códigos</label>
+        <div class="input-icon-wrap">
+          <i class="fas fa-barcode"></i>
+          <input type="text" id="scanner" autofocus placeholder="Pressione Enter após escanear">
+        </div>
+      </div>
+
+      <div class="quick-mode">
+        <label class="switch">
+          <input type="checkbox" id="modo-rapido">
+          <span class="switch-track"></span>
+        </label>
+        <span>Modo rápido</span>
+      </div>
+
+      <div id="feedback" class="feedback-message"></div>
+
+      <div class="scanned-items">
+        <label>Itens escaneados</label>
+        <div id="lista-codigos" class="items-list">
+          <div class="empty-state">Nenhum item escaneado</div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button onclick="imprimirComanda()" class="btn-print"><i class="fas fa-print"></i> Imprimir</button>
+        <button onclick="mostrarQRCode()" class="btn-qrcode"><i class="fas fa-qrcode"></i> QR Code</button>
+        <button onclick="testarImpressora()" class="btn-test"><i class="fas fa-satellite-dish"></i> Testar</button>
+        <button onclick="limparTodasComandas()" class="btn-clear"><i class="fas fa-trash"></i> Limpar todas</button>
+      </div>
+    </div>
+
+    <div class="catalog-panel panel">
+      <h2>Cardápio</h2>
+      <div class="catalog-tabs">
+        <button class="menu-toggle" id="bebidas-toggle"><i class="fas fa-wine-bottle"></i> Bebidas</button>
+        <button class="menu-toggle" id="salgados-toggle"><i class="fas fa-hamburger"></i> Salgados</button>
+      </div>
+      <div class="menu-content" id="bebidas-content"></div>
+      <div class="menu-content" id="salgados-content"></div>
+    </div>
+
+    <footer>
+      <img src="logo-mini.jpg" class="footer-logo" alt="Logo Tropicana Mini">
+      <p>by fernandofam2025</p>
+    </footer>
+  </div>
+
+  <div id="modal-qrcode" class="modal-qrcode">
+    <div class="modal-qrcode-content">
+      <h2>QR Code da Comanda <span id="qrcode-numero"></span></h2>
+      <div id="qrcode-container"></div>
+      <div class="url-texto" id="qrcode-url"></div>
+      <p style="font-size:12px;color:#666;">Imprima este QR Code na comanda física</p>
+      <button onclick="fecharQRCode()">Fechar</button>
+    </div>
+  </div>
+
+  <script>
+    const listaContainer = document.getElementById("lista-codigos");
+    const scannerInput = document.getElementById("scanner");
+    const numeroComanda = document.getElementById("numeroComanda");
+    const modoRapido = document.getElementById("modo-rapido");
+    const feedback = document.getElementById("feedback");
+    const bebidasToggle = document.getElementById("bebidas-toggle");
+    const bebidasContent = document.getElementById("bebidas-content");
+    const salgadosToggle = document.getElementById("salgados-toggle");
+    const salgadosContent = document.getElementById("salgados-content");
+    const menuComandas = document.getElementById("menu-comandas");
+    const headerStatus = document.getElementById("header-status");
+
+    let comandas = {};
+    const contadoresComandas = {};
+    const URL_BASE = window.location.origin;
+
+    async function apiLerComanda(num) {
+      try {
+        const res = await fetch(`/api/comanda/${num}`, { cache: "no-store" });
+        if (!res.ok) return [];
+        const dados = await res.json();
+        return Array.isArray(dados) ? dados : [];
+      } catch (err) {
+        console.error("Erro ao ler comanda:", err);
+        return [];
+      }
+    }
+
+    async function apiAdicionarItem(num, codigo, quantidade = 1) {
+      try {
+        const res = await fetch(`/api/comanda/${num}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode: codigo, quantidade })
+        });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (err) {
+        console.error("Erro ao adicionar item:", err);
         return null;
       }
-      return await res.json();
-    } catch (err) {
-      console.error("Erro ao remover item:", err);
-      return null;
     }
-  }
 
-  async function apiLimparComanda(num) {
-    try {
-      const res = await fetch(`/api/comanda/${num}`, {
-        method: 'DELETE'
-      });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch (err) {
-      console.error("Erro ao limpar comanda:", err);
-      return null;
-    }
-  }
-
-  // ============================================================
-  // Interface
-  // ============================================================
-  function atualizarContadores() {
-    for (let i = 1; i <= 10; i++) {
-      if (contadoresComandas[i]) {
-        contadoresComandas[i].textContent = (comandas[i] && comandas[i].length) ? comandas[i].length : 0;
-      }
-    }
-  }
-
-  for (let i = 1; i <= 10; i++) {
-    const btnContainer = document.createElement("div");
-
-    const btn = document.createElement("button");
-    btn.textContent = i.toString().padStart(2,'0');
-    btn.dataset.num = i;
-    btn.addEventListener("click", () => selecionarComanda(i));
-
-    const contador = document.createElement("span");
-    contador.textContent = "0";
-
-    const btnLimpar = document.createElement("button");
-    btnLimpar.textContent = "limpar";
-    btnLimpar.addEventListener("click", () => limparComandaIndividual(i));
-
-    btnContainer.appendChild(btn);
-    btnContainer.appendChild(contador);
-    btnContainer.appendChild(btnLimpar);
-    menuComandas.appendChild(btnContainer);
-
-    contadoresComandas[i] = contador;
-  }
-
-  function marcarComandaAtiva(num) {
-    menuComandas.querySelectorAll("button[data-num]").forEach(b => {
-      b.classList.toggle("active", parseInt(b.dataset.num, 10) === num);
-    });
-  }
-
-  // ============================================================
-  // Menu
-  // ============================================================
-  const bebidas = [
-    { codigo: "7898263240034", nome: "MACROVITA 300ml" },
-    { codigo: "7894900011609", nome: "COCA COLA 600ml" },
-    { codigo: "7894900701609", nome: "COCA COLA ZERO 600ml" },
-    { codigo: "78933873", nome: "COCA COLA MINI ZERO" },
-    { codigo: "78906901", nome: "COCA COLA MINI" },
-    { codigo: "7899400010015", nome: "COCA COLA LATA" },
-    { codigo: "7894900700015", nome: "COCA COLA ZERO LATA" },
-    { codigo: "2002100004504", nome: "CAFÉ COM LEITE" },
-    { codigo: "2002400003504", nome: "MEIO CAFÉ COM LEITE" },
-    { codigo: "2084000004006", nome: "CAFÉ PRETO" },
-    { codigo: "2050400003000", nome: "MEIO CAFÉ PRETO" }
-  ];
-
-  const salgados = [
-    { codigo: "1000000000001", nome: "COXINHA" },
-    { codigo: "1000000000002", nome: "PASTEL DE CARNE" },
-    { codigo: "1000000000003", nome: "EMPADA DE FRANGO" },
-    { codigo: "1000000000004", nome: "KIBE" },
-    { codigo: "1000000000005", nome: "RISOLES" },
-    { codigo: "1000000000006", nome: "BOLINHA DE QUEIJO" },
-    { codigo: "1000000000007", nome: "ENROLADINHO DE SALSICHA" },
-    { codigo: "1000000000008", nome: "ESFIRRA" },
-    { codigo: "1000000000009", nome: "PÃO DE QUEIJO" },
-    { codigo: "1000000000010", nome: "TROUXINHA DE FRANGO" }
-  ];
-
-  const produtosPorCodigo = {};
-  [...bebidas, ...salgados].forEach(p => { produtosPorCodigo[p.codigo] = p; });
-
-  function gerarMenuProdutos(produtos, container) {
-    container.innerHTML = '';
-
-    produtos.forEach(produto => {
-      const produtoItem = document.createElement("div");
-      produtoItem.className = "produto-item";
-
-      const produtoInfo = document.createElement("div");
-      produtoInfo.className = "produto-info";
-
-      const nomeSpan = document.createElement("span");
-      nomeSpan.className = "produto-nome";
-      nomeSpan.textContent = produto.nome;
-
-      const codigoSpan = document.createElement("span");
-      codigoSpan.className = "produto-codigo";
-      codigoSpan.textContent = produto.codigo;
-
-      produtoInfo.appendChild(nomeSpan);
-      produtoInfo.appendChild(codigoSpan);
-
-      const quantidadeControl = document.createElement("div");
-      quantidadeControl.className = "quantidade-control";
-
-      const menosBtn = document.createElement("button");
-      menosBtn.className = "quantidade-btn";
-      menosBtn.textContent = "-";
-
-      const quantidadeValue = document.createElement("span");
-      quantidadeValue.className = "quantidade-value";
-      quantidadeValue.textContent = "1";
-
-      const maisBtn = document.createElement("button");
-      maisBtn.className = "quantidade-btn";
-      maisBtn.textContent = "+";
-
-      const adicionarBtn = document.createElement("button");
-      adicionarBtn.className = "adicionar-btn";
-      adicionarBtn.textContent = "Adicionar à Comanda";
-
-      quantidadeControl.appendChild(menosBtn);
-      quantidadeControl.appendChild(quantidadeValue);
-      quantidadeControl.appendChild(maisBtn);
-
-      produtoItem.appendChild(produtoInfo);
-      produtoItem.appendChild(quantidadeControl);
-      produtoItem.appendChild(adicionarBtn);
-
-      container.appendChild(produtoItem);
-
-      let quantidade = 1;
-
-      menosBtn.addEventListener("click", () => {
-        if (quantidade > 1) {
-          quantidade--;
-          quantidadeValue.textContent = quantidade;
-        }
-      });
-
-      maisBtn.addEventListener("click", () => {
-        quantidade++;
-        quantidadeValue.textContent = quantidade;
-      });
-
-      adicionarBtn.addEventListener("click", async () => {
-        const comandaAtual = parseInt(numeroComanda.value, 10);
-        if (!comandaAtual) {
-          feedback.textContent = "Selecione uma comanda primeiro!";
-          setTimeout(() => feedback.textContent = "", 2000);
-          return;
-        }
-
-        // Envia tudo de uma vez (backend suporta quantidade)
-        await apiAdicionarItem(comandaAtual, produto.codigo, quantidade);
-
-        // SEMPRE relê do servidor para ter o estado correto
-        comandas[comandaAtual] = await apiLerComanda(comandaAtual);
-        atualizarLista();
-        atualizarContadores();
-        feedback.textContent = `${quantidade} ${produto.nome} adicionado(s)!`;
-        setTimeout(() => feedback.textContent = "", 2000);
-
-        quantidade = 1;
-        quantidadeValue.textContent = "1";
-        scannerInput.focus();
-      });
-    });
-  }
-
-  gerarMenuProdutos(bebidas, bebidasContent);
-  gerarMenuProdutos(salgados, salgadosContent);
-
-  bebidasToggle.addEventListener("click", () => {
-    bebidasToggle.classList.add("expanded");
-    bebidasContent.classList.add("expanded");
-    salgadosToggle.classList.remove("expanded");
-    salgadosContent.classList.remove("expanded");
-  });
-
-  salgadosToggle.addEventListener("click", () => {
-    salgadosToggle.classList.add("expanded");
-    salgadosContent.classList.add("expanded");
-    bebidasToggle.classList.remove("expanded");
-    bebidasContent.classList.remove("expanded");
-  });
-
-  bebidasToggle.click();
-
-  // ============================================================
-  // Comandas
-  // ============================================================
-  async function selecionarComanda(num) {
-    numeroComanda.value = num.toString().padStart(2,'0');
-    comandas[num] = await apiLerComanda(num);
-    marcarComandaAtiva(num);
-    atualizarLista();
-    atualizarContadores();
-    feedback.textContent = "";
-    scannerInput.focus();
-  }
-
-  scannerInput.addEventListener("keydown", async function(e){
-    if(e.key==="Enter"){
-      const codigo = scannerInput.value.trim();
-      if(codigo && numeroComanda.value){
-        const comandaAtual = parseInt(numeroComanda.value,10);
-        scannerInput.value="";
-        await apiAdicionarItem(comandaAtual, codigo);
-        comandas[comandaAtual] = await apiLerComanda(comandaAtual);
-        atualizarLista();
-        atualizarContadores();
-        if(modoRapido.checked){
-          feedback.textContent = `Item ${codigo} adicionado!`;
-          setTimeout(()=>feedback.textContent="",1000);
-        }
-        scannerInput.focus();
-      }
-    }
-  });
-
-  function atualizarLista(){
-    const comandaAtual = parseInt(numeroComanda.value,10);
-    const numPad = numeroComanda.value;
-    const qtdAtual = comandas[comandaAtual] ? comandas[comandaAtual].length : 0;
-    headerStatus.textContent = numPad ? `Comanda ${numPad} · ${qtdAtual} ${qtdAtual===1?'item':'itens'}` : "Selecione uma comanda";
-
-    listaContainer.innerHTML="";
-    if(!comandas[comandaAtual]||comandas[comandaAtual].length===0){
-      const empty=document.createElement("div");
-      empty.className="empty-state";
-      empty.textContent="Nenhum item escaneado";
-      listaContainer.appendChild(empty);
-      return;
-    }
-    comandas[comandaAtual].forEach((codigo,index)=>{
-      const produto = produtosPorCodigo[codigo];
-
-      const item=document.createElement("div");
-      item.className="scanned-item";
-
-      const info = document.createElement("div");
-      info.className = "scanned-item-info";
-
-      const nome = document.createElement("span");
-      nome.className = "scanned-item-nome";
-      nome.textContent = produto ? produto.nome : "Item avulso";
-
-      const cod = document.createElement("span");
-      cod.className = "scanned-item-codigo";
-      cod.textContent = codigo;
-
-      info.appendChild(nome);
-      info.appendChild(cod);
-
-      const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-      svg.id=`barcode-${comandaAtual}-${index}`;
-      svg.className = "barcode-svg-print";
+    async function apiRemoverItem(num, index) {
       try {
-        JsBarcode(svg,codigo,{format:"CODE128",width:1.5,height:50,displayValue:true,fontSize:10});
-      } catch(e) {
-        console.warn("Erro ao gerar código de barras para", codigo, e);
+        const res = await fetch(`/api/comanda/${num}/item/${index}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (err) {
+        console.error("Erro ao remover item:", err);
+        return null;
       }
+    }
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "delete-btn";
-      deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
-      deleteBtn.title = "Remover item";
-      deleteBtn.addEventListener("click", () => removerItem(comandaAtual, index));
+    async function apiLimparComanda(num) {
+      try {
+        const res = await fetch(`/api/comanda/${num}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (err) {
+        console.error("Erro ao limpar comanda:", err);
+        return null;
+      }
+    }
 
-      item.appendChild(info);
-      item.appendChild(svg);
-      item.appendChild(deleteBtn);
-      listaContainer.appendChild(item);
+    function atualizarContadores() {
+      for (let i = 1; i <= 10; i++) {
+        if (contadoresComandas[i]) {
+          contadoresComandas[i].textContent = (comandas[i] && comandas[i].length) ? comandas[i].length : 0;
+        }
+      }
+    }
+
+    for (let i = 1; i <= 10; i++) {
+      const btnContainer = document.createElement("div");
+
+      const btn = document.createElement("button");
+      btn.textContent = i.toString().padStart(2,'0');
+      btn.dataset.num = i;
+      btn.addEventListener("click", () => selecionarComanda(i));
+
+      const contador = document.createElement("span");
+      contador.textContent = "0";
+
+      const btnLimpar = document.createElement("button");
+      btnLimpar.textContent = "limpar";
+      btnLimpar.addEventListener("click", () => limparComandaIndividual(i));
+
+      btnContainer.appendChild(btn);
+      btnContainer.appendChild(contador);
+      btnContainer.appendChild(btnLimpar);
+      menuComandas.appendChild(btnContainer);
+
+      contadoresComandas[i] = contador;
+    }
+
+    function marcarComandaAtiva(num) {
+      menuComandas.querySelectorAll("button[data-num]").forEach(b => {
+        b.classList.toggle("active", parseInt(b.dataset.num, 10) === num);
+      });
+    }
+
+    const bebidas = [
+      { codigo: "7898263240034", nome: "MACROVITA 300ml" },
+      { codigo: "7894900011609", nome: "COCA COLA 600ml" },
+      { codigo: "7894900701609", nome: "COCA COLA ZERO 600ml" },
+      { codigo: "78933873", nome: "COCA COLA MINI ZERO" },
+      { codigo: "78906901", nome: "COCA COLA MINI" },
+      { codigo: "7899400010015", nome: "COCA COLA LATA" },
+      { codigo: "7894900700015", nome: "COCA COLA ZERO LATA" },
+      { codigo: "2002100004504", nome: "CAFÉ COM LEITE" },
+      { codigo: "2002400003504", nome: "MEIO CAFÉ COM LEITE" },
+      { codigo: "2084000004006", nome: "CAFÉ PRETO" },
+      { codigo: "2050400003000", nome: "MEIO CAFÉ PRETO" }
+    ];
+
+    const salgados = [
+      { codigo: "1000000000001", nome: "COXINHA" },
+      { codigo: "1000000000002", nome: "PASTEL DE CARNE" },
+      { codigo: "1000000000003", nome: "EMPADA DE FRANGO" },
+      { codigo: "1000000000004", nome: "KIBE" },
+      { codigo: "1000000000005", nome: "RISOLES" },
+      { codigo: "1000000000006", nome: "BOLINHA DE QUEIJO" },
+      { codigo: "1000000000007", nome: "ENROLADINHO DE SALSICHA" },
+      { codigo: "1000000000008", nome: "ESFIRRA" },
+      { codigo: "1000000000009", nome: "PÃO DE QUEIJO" },
+      { codigo: "1000000000010", nome: "TROUXINHA DE FRANGO" }
+    ];
+
+    const produtosPorCodigo = {};
+    [...bebidas, ...salgados].forEach(p => { produtosPorCodigo[p.codigo] = p; });
+
+    function gerarMenuProdutos(produtos, container) {
+      container.innerHTML = '';
+
+      produtos.forEach(produto => {
+        const produtoItem = document.createElement("div");
+        produtoItem.className = "produto-item";
+
+        const produtoInfo = document.createElement("div");
+        produtoInfo.className = "produto-info";
+
+        const nomeSpan = document.createElement("span");
+        nomeSpan.className = "produto-nome";
+        nomeSpan.textContent = produto.nome;
+
+        const codigoSpan = document.createElement("span");
+        codigoSpan.className = "produto-codigo";
+        codigoSpan.textContent = produto.codigo;
+
+        produtoInfo.appendChild(nomeSpan);
+        produtoInfo.appendChild(codigoSpan);
+
+        const quantidadeControl = document.createElement("div");
+        quantidadeControl.className = "quantidade-control";
+
+        const menosBtn = document.createElement("button");
+        menosBtn.className = "quantidade-btn";
+        menosBtn.textContent = "-";
+
+        const quantidadeValue = document.createElement("span");
+        quantidadeValue.className = "quantidade-value";
+        quantidadeValue.textContent = "1";
+
+        const maisBtn = document.createElement("button");
+        maisBtn.className = "quantidade-btn";
+        maisBtn.textContent = "+";
+
+        const adicionarBtn = document.createElement("button");
+        adicionarBtn.className = "adicionar-btn";
+        adicionarBtn.textContent = "Adicionar à Comanda";
+
+        quantidadeControl.appendChild(menosBtn);
+        quantidadeControl.appendChild(quantidadeValue);
+        quantidadeControl.appendChild(maisBtn);
+
+        produtoItem.appendChild(produtoInfo);
+        produtoItem.appendChild(quantidadeControl);
+        produtoItem.appendChild(adicionarBtn);
+
+        container.appendChild(produtoItem);
+
+        let quantidade = 1;
+
+        menosBtn.addEventListener("click", () => {
+          if (quantidade > 1) {
+            quantidade--;
+            quantidadeValue.textContent = quantidade;
+          }
+        });
+
+        maisBtn.addEventListener("click", () => {
+          quantidade++;
+          quantidadeValue.textContent = quantidade;
+        });
+
+        adicionarBtn.addEventListener("click", async () => {
+          const comandaAtual = parseInt(numeroComanda.value, 10);
+          if (!comandaAtual) {
+            feedback.textContent = "Selecione uma comanda primeiro!";
+            setTimeout(() => feedback.textContent = "", 2000);
+            return;
+          }
+
+          await apiAdicionarItem(comandaAtual, produto.codigo, quantidade);
+          comandas[comandaAtual] = await apiLerComanda(comandaAtual);
+          atualizarLista();
+          atualizarContadores();
+          feedback.textContent = `${quantidade} ${produto.nome} adicionado(s)!`;
+          setTimeout(() => feedback.textContent = "", 2000);
+
+          quantidade = 1;
+          quantidadeValue.textContent = "1";
+          scannerInput.focus();
+        });
+      });
+    }
+
+    gerarMenuProdutos(bebidas, bebidasContent);
+    gerarMenuProdutos(salgados, salgadosContent);
+
+    bebidasToggle.addEventListener("click", () => {
+      bebidasToggle.classList.add("expanded");
+      bebidasContent.classList.add("expanded");
+      salgadosToggle.classList.remove("expanded");
+      salgadosContent.classList.remove("expanded");
     });
-  }
 
-  async function removerItem(comandaNum, index) {
-    if (!confirm("Deseja remover este item?")) return;
-    await apiRemoverItem(comandaNum, index);
-    comandas[comandaNum] = await apiLerComanda(comandaNum);
-    atualizarLista();
-    atualizarContadores();
-    feedback.textContent = "Item removido com sucesso!";
-    setTimeout(() => feedback.textContent = "", 2000);
-    scannerInput.focus();
-  }
+    salgadosToggle.addEventListener("click", () => {
+      salgadosToggle.classList.add("expanded");
+      salgadosContent.classList.add("expanded");
+      bebidasToggle.classList.remove("expanded");
+      bebidasContent.classList.remove("expanded");
+    });
 
-  async function limparComandaIndividual(num){
-    if(!comandas[num]||comandas[num].length===0){
-      feedback.textContent="Comanda já está vazia!";
-      return;
-    }
-    if(confirm(`Deseja realmente limpar a comanda ${num}?`)){
-      await apiLimparComanda(num);
-      comandas[num]=[];
-      if(parseInt(numeroComanda.value,10)===num) atualizarLista();
-      atualizarContadores();
-      feedback.textContent=`Comanda ${num} limpa!`;
-      scannerInput.focus();
-    }
-  }
+    bebidasToggle.click();
 
-  async function limparTodasComandas(){
-    if(confirm("Deseja realmente limpar TODAS as comandas?")){
-      for(let num = 1; num <= 10; num++){
-        await apiLimparComanda(num);
-        comandas[num]=[];
-      }
+    async function selecionarComanda(num) {
+      numeroComanda.value = num.toString().padStart(2,'0');
+      comandas[num] = await apiLerComanda(num);
+      marcarComandaAtiva(num);
       atualizarLista();
       atualizarContadores();
-      feedback.textContent="Todas as comandas foram limpas!";
+      feedback.textContent = "";
       scannerInput.focus();
     }
-  }
 
-  // ============================================================
-  // Impressão
-  // ============================================================
-  function imprimirComanda(){
-    const comandaAtual=parseInt(numeroComanda.value,10);
-    if(!comandas[comandaAtual]||comandas[comandaAtual].length===0){
-      feedback.textContent="Nenhum item para imprimir!";
-      return;
-    }
-    const printWindow=window.open('','', 'width=300,height=600');
-    printWindow.document.write('<html><head><title>Comanda</title></head><body>');
-    printWindow.document.write(`<h3>Comanda ${numeroComanda.value}</h3>`);
-    comandas[comandaAtual].forEach((codigo,index)=>{
-      const svg=document.getElementById(`barcode-${comandaAtual}-${index}`);
-      if(svg){
-        const xml=new XMLSerializer().serializeToString(svg);
-        const svg64=btoa(unescape(encodeURIComponent(xml)));
-        const imgSrc='data:image/svg+xml;base64,'+svg64;
-        printWindow.document.write(`<img src="${imgSrc}" style="width:90%; max-width:220px;"><br>`);
+    scannerInput.addEventListener("keydown", async function(e){
+      if(e.key==="Enter"){
+        const codigo = scannerInput.value.trim();
+        if(codigo && numeroComanda.value){
+          const comandaAtual = parseInt(numeroComanda.value,10);
+          scannerInput.value="";
+          await apiAdicionarItem(comandaAtual, codigo);
+          comandas[comandaAtual] = await apiLerComanda(comandaAtual);
+          atualizarLista();
+          atualizarContadores();
+          if(modoRapido.checked){
+            feedback.textContent = `Item ${codigo} adicionado!`;
+            setTimeout(()=>feedback.textContent="",1000);
+          }
+          scannerInput.focus();
+        }
       }
     });
-    const agora=new Date();
-    const dataHora=agora.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
-    printWindow.document.write(`<p style="font-size:10px;margin-top:10px;">${dataHora}</p>`);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.onload=()=>{printWindow.focus();printWindow.print();printWindow.close();}
-  }
 
-  function testarImpressora(){
-    const testWindow=window.open('','','width=300,height=600');
-    testWindow.document.write('<html><head><title>Teste Impressora</title></head><body>');
-    testWindow.document.write('<p>Teste de impressão OK</p>');
-    testWindow.document.close();
-    testWindow.focus();
-    testWindow.print();
-    testWindow.close();
-    scannerInput.focus();
-  }
+    function atualizarLista(){
+      const comandaAtual = parseInt(numeroComanda.value,10);
+      const numPad = numeroComanda.value;
+      const qtdAtual = comandas[comandaAtual] ? comandas[comandaAtual].length : 0;
+      headerStatus.textContent = numPad ? `Comanda ${numPad} · ${qtdAtual} ${qtdAtual===1?'item':'itens'}` : "Selecione uma comanda";
 
-  // ============================================================
-  // QR Code
-  // ============================================================
-  function mostrarQRCode() {
-    const comandaAtual = numeroComanda.value;
-    if (!comandaAtual || comandaAtual === "") {
-      alert("Selecione uma comanda primeiro!");
-      return;
-    }
+      listaContainer.innerHTML="";
+      if(!comandas[comandaAtual]||comandas[comandaAtual].length===0){
+        const empty=document.createElement("div");
+        empty.className="empty-state";
+        empty.textContent="Nenhum item escaneado";
+        listaContainer.appendChild(empty);
+        return;
+      }
+      comandas[comandaAtual].forEach((codigo,index)=>{
+        const produto = produtosPorCodigo[codigo];
 
-    const url = `${URL_BASE}/comanda/${comandaAtual}`;
+        const item=document.createElement("div");
+        item.className="scanned-item";
 
-    document.getElementById("qrcode-numero").textContent = comandaAtual;
-    document.getElementById("qrcode-url").textContent = url;
+        const info = document.createElement("div");
+        info.className = "scanned-item-info";
 
-    const container = document.getElementById("qrcode-container");
-    container.innerHTML = "";
-
-    new QRCode(container, {
-      text: url,
-      width: 220,
-      height: 220,
-      colorDark: "#0B2E2C",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H
-    });
-
-    document.getElementById("modal-qrcode").style.display = "flex";
-  }
-
-  function fecharQRCode() {
-    document.getElementById("modal-qrcode").style.display = "none";
-  }
-
-  document.getElementById("modal-qrcode").addEventListener("click", function(e) {
-    if (e.target === this) {
-      fecharQRCode();
-    }
-  });
-
-  // ============================================================
-  // Inicialização
-  // ============================================================
-  selecionarComanda(1);
-</script>
+        const nome = document.createElement("span");
+        nome.className = "scanned-item-nome";
