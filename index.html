@@ -767,17 +767,20 @@
     }
 
     async function apiRemoverItem(num, index) {
-      try {
-        const res = await fetch(`/api/comanda/${num}/item/${index}`, {
-          method: 'DELETE'
-        });
-        if (!res.ok) return null;
-        return await res.json();
-      } catch (err) {
-        console.error("Erro ao remover item:", err);
-        return null;
-      }
+  try {
+    const res = await fetch(`/.netlify/functions/comanda-item/${num}/${index}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      console.error("Erro ao remover:", res.status, res.statusText);
+      return null;
     }
+    return await res.json();
+  } catch (err) {
+    console.error("Erro ao remover item:", err);
+    return null;
+  }
+}
 
     async function apiLimparComanda(num) {
       try {
