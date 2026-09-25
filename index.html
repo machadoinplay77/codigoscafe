@@ -768,20 +768,23 @@
 
     async function apiRemoverItem(num, codigo) {
   try {
-    const res = await fetch(`/api/remover-item/${num}?codigo=${encodeURIComponent(codigo)}`, {
-      method: 'DELETE'
+   const res = await fetch(`/api/comanda/${num}?codigo=${encodeURIComponent(codigo)}`, {
+      method: "DELETE"
     });
+
+    const dados = await res.json();
+
     if (!res.ok) {
-      console.error("Erro ao remover:", res.status, res.statusText);
+      console.error("Erro ao remover:", dados);
       return null;
     }
-    return await res.json();
+
+    return dados;
   } catch (err) {
     console.error("Erro ao remover item:", err);
     return null;
   }
 }
-
     async function apiLimparComanda(num) {
       try {
         const res = await fetch(`/api/comanda/${num}`, {
