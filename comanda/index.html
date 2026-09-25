@@ -2,41 +2,357 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Comanda</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comanda - Tropicana</title>
+  <link rel="icon" href="../favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
-    .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h1 { color: #2196F3; }
-    .item { padding: 10px; background: #f9f9f9; margin: 5px 0; border-radius: 5px; font-family: monospace; }
-    .vazio { color: #999; font-style: italic; }
+    @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+      --teal-900: #123B37;
+      --teal-800: #175048;
+      --teal-700: #1D655A;
+      --mango-500: #F5A524;
+      --coral-500: #E8574B;
+      --cream-50: #FAF7F1;
+      --paper: #FFFFFF;
+      --ink-900: #16231F;
+      --ink-600: #4B5B54;
+      --ink-400: #8A968F;
+      --line: #E6E2D6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--cream-50);
+      color: var(--ink-900);
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--teal-900), var(--teal-700));
+      color: #fff;
+      padding: 22px 20px;
+      text-align: center;
+      box-shadow: 0 4px 18px rgba(11,46,44,.18);
+    }
+
+    .header h1 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 22px;
+      margin: 0 0 4px;
+      font-weight: 700;
+    }
+
+    .header p {
+      margin: 0;
+      font-size: 13px;
+      color: rgba(255,255,255,.72);
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 24px auto;
+      padding: 0 16px 32px;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(11,46,44,.06);
+      margin-bottom: 18px;
+    }
+
+    .comanda-titulo {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .comanda-titulo h2 {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 28px;
+      margin: 0;
+      color: var(--teal-900);
+    }
+
+    .comanda-titulo .total {
+      font-size: 13px;
+      color: var(--ink-600);
+      font-weight: 600;
+      background: var(--cream-50);
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+    }
+
+    .status {
+      font-size: 13px;
+      color: var(--ink-400);
+      margin-top: 4px;
+    }
+
+    .items-lista {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .item:last-child { border-bottom: none; }
+
+    .item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .item-nome {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--ink-900);
+    }
+
+    .item-codigo {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--ink-400);
+    }
+
+    .item-qtd {
+      flex-shrink: 0;
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--teal-800);
+      background: var(--cream-50);
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+    }
+
+    .vazio {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--ink-400);
+      font-style: italic;
+      font-size: 14px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--ink-400);
+      font-size: 14px;
+    }
+
+    .erro {
+      background: #FFEDEB;
+      border: 1px solid #FFC9C3;
+      color: var(--coral-500);
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--ink-400);
+      padding: 12px;
+    }
+
+    .refresh-btn {
+      display: block;
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      background: var(--teal-800);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: background .15s;
+    }
+
+    .refresh-btn:hover { background: var(--teal-700); }
+    .refresh-btn i { margin-right: 8px; }
   </style>
 </head>
 <body>
+  <div class="header">
+    <h1><i class="fas fa-receipt"></i> Comanda Tropicana</h1>
+    <p>Confira seus itens abaixo</p>
+  </div>
+
   <div class="container">
-    <h1>Comanda <span id="id"></span></h1>
-    <div id="itens"></div>
+    <div class="card" id="card-comanda">
+      <div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando comanda...</div>
+    </div>
+
+    <button class="refresh-btn" onclick="carregarComanda()">
+      <i class="fas fa-sync-alt"></i> Atualizar
+    </button>
+  </div>
+
+  <div class="footer">
+    by fernandofam2025
   </div>
 
   <script>
-    // Pega o ID da URL: /comanda/01 → 01
-    const partes = window.location.pathname.split('/');
-    const comandaId = partes[partes.length - 1];
+    // Produtos do cardápio (mesma lista do site principal)
+    const bebidas = [
+      { codigo: "7898263240034", nome: "MACROVITA 300ml" },
+      { codigo: "7894900011609", nome: "COCA COLA 600ml" },
+      { codigo: "7894900701609", nome: "COCA COLA ZERO 600ml" },
+      { codigo: "78933873", nome: "COCA COLA MINI ZERO" },
+      { codigo: "78906901", nome: "COCA COLA MINI" },
+      { codigo: "7899400010015", nome: "COCA COLA LATA" },
+      { codigo: "7894900700015", nome: "COCA COLA ZERO LATA" },
+      { codigo: "2002100004504", nome: "CAFÉ COM LEITE" },
+      { codigo: "2002400003504", nome: "MEIO CAFÉ COM LEITE" },
+      { codigo: "2084000004006", nome: "CAFÉ PRETO" },
+      { codigo: "2050400003000", nome: "MEIO CAFÉ PRETO" }
+    ];
 
-    document.getElementById('id').textContent = comandaId;
+    const salgados = [
+      { codigo: "1000000000001", nome: "COXINHA" },
+      { codigo: "1000000000002", nome: "PASTEL DE CARNE" },
+      { codigo: "1000000000003", nome: "EMPADA DE FRANGO" },
+      { codigo: "1000000000004", nome: "KIBE" },
+      { codigo: "1000000000005", nome: "RISOLES" },
+      { codigo: "1000000000006", nome: "BOLINHA DE QUEIJO" },
+      { codigo: "1000000000007", nome: "ENROLADINHO DE SALSICHA" },
+      { codigo: "1000000000008", nome: "ESFIRRA" },
+      { codigo: "1000000000009", nome: "PÃO DE QUEIJO" },
+      { codigo: "1000000000010", nome: "TROUXINHA DE FRANGO" }
+    ];
 
-    fetch(`/api/comanda/${comandaId}`)
-      .then(r => r.json())
-      .then(itens => {
-        const div = document.getElementById('itens');
-        if (!itens || itens.length === 0) {
-          div.innerHTML = '<p class="vazio">Nenhum item nesta comanda</p>';
-        } else {
-          div.innerHTML = itens.map(c => `<div class="item">${c}</div>`).join('');
-        }
-      })
-      .catch(err => {
-        document.getElementById('itens').innerHTML = '<p class="vazio">Erro ao carregar</p>';
+    const produtosPorCodigo = {};
+    [...bebidas, ...salgados].forEach(p => { produtosPorCodigo[p.codigo] = p; });
+
+    // Extrai o número da comanda da URL
+    function extrairNumeroComanda() {
+      // Tenta /comanda/01
+      let match = window.location.pathname.match(/\/comanda\/(\d+)/);
+      if (match) return match[1];
+
+      // Tenta ?comanda=01
+      const params = new URLSearchParams(window.location.search);
+      const c = params.get("comanda") || params.get("c");
+      if (c) return c;
+
+      return null;
+    }
+
+    // Agrupa itens iguais para mostrar "2x COXINHA"
+    function agruparItens(itens) {
+      const contagem = {};
+      itens.forEach(codigo => {
+        contagem[codigo] = (contagem[codigo] || 0) + 1;
       });
+      return Object.entries(contagem).map(([codigo, qtd]) => ({ codigo, qtd }));
+    }
+
+    async function carregarComanda() {
+      const card = document.getElementById("card-comanda");
+      const num = extrairNumeroComanda();
+
+      if (!num) {
+        card.innerHTML = `<div class="erro"><i class="fas fa-exclamation-triangle"></i> Comanda não identificada. Verifique o QR Code.</div>`;
+        return;
+      }
+
+      card.innerHTML = `<div class="loading"><i class="fas fa-spinner fa-spin"></i> Carregando comanda ${num}...</div>`;
+
+      try {
+        const res = await fetch(`/api/comanda/${num}`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`Erro ${res.status}`);
+
+        const itens = await res.json();
+        const lista = Array.isArray(itens) ? itens : [];
+
+        if (lista.length === 0) {
+          card.innerHTML = `
+            <div class="comanda-titulo">
+              <h2>Comanda ${num}</h2>
+              <span class="total">0 itens</span>
+            </div>
+            <div class="vazio"><i class="fas fa-inbox"></i><br>Nenhum item na comanda ainda.</div>
+          `;
+          return;
+        }
+
+        const agrupados = agruparItens(lista);
+        const totalItens = lista.length;
+
+        let html = `
+          <div class="comanda-titulo">
+            <h2>Comanda ${num}</h2>
+            <span class="total">${totalItens} ${totalItens === 1 ? 'item' : 'itens'}</span>
+          </div>
+          <p class="status">Última atualização: ${new Date().toLocaleTimeString('pt-BR')}</p>
+          <ul class="items-lista">
+        `;
+
+        agrupados.forEach(({ codigo, qtd }) => {
+          const produto = produtosPorCodigo[codigo];
+          const nome = produto ? produto.nome : "Item avulso";
+          html += `
+            <li class="item">
+              <div class="item-info">
+                <span class="item-nome">${nome}</span>
+                <span class="item-codigo">${codigo}</span>
+              </div>
+              <span class="item-qtd">${qtd}x</span>
+            </li>
+          `;
+        });
+
+        html += `</ul>`;
+        card.innerHTML = html;
+
+      } catch (err) {
+        console.error("Erro ao carregar comanda:", err);
+        card.innerHTML = `
+          <div class="erro">
+            <i class="fas fa-exclamation-triangle"></i><br>
+            Não foi possível carregar a comanda ${num}.<br>
+            <small style="font-weight:400;">${err.message}</small>
+          </div>
+        `;
+      }
+    }
+
+    // Carrega ao abrir a página
+    carregarComanda();
+
+    // Atualiza a cada 15 segundos automaticamente (útil se o cliente deixar aberto)
+    setInterval(carregarComanda, 15000);
   </script>
 </body>
 </html>
