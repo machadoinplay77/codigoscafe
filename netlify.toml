@@ -1,0 +1,17 @@
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+
+# Rota para remover UM item da comanda (usa DELETE + query ?codigo=)
+[[redirects]]
+  from = "/api/remover-item/*"
+  to = "/.netlify/functions/comanda-item/:splat"
+  status = 200
+
+# Rota GENÉRICA para o resto (GET, POST, DELETE da comanda inteira)
+[[redirects]]
+  from = "/api/comanda/*"
+  to = "/.netlify/functions/comanda/:splat"
+  status = 200
