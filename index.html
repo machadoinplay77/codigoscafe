@@ -1018,3 +1018,151 @@
 
         const nome = document.createElement("span");
         nome.className = "scanned-item-nome";
+        nome.textContent = produto ? produto.nome : "Item avulso";
+
+        const cod = document.createElement("span");
+        cod.className = "scanned-item-codigo";
+        cod.textContent = codigo;
+
+        info.appendChild(nome);
+        info.appendChild(cod);
+
+        const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+        svg.id=`barcode-${comandaAtual}-${index}`;
+        svg.className = "barcode-svg-print";
+        try {
+          JsBarcode(svg,codigo,{format:"CODE128",width:1.5,height:50,displayValue:true,fontSize:10});
+        } catch(e) {
+          console.warn("Erro ao gerar código de barras para", codigo, e);
+        }
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-btn";
+        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+        deleteBtn.title = "Remover item";
+        deleteBtn.addEventListener("click", () => removerItem(comandaAtual, index));
+
+        item.appendChild(info);
+        item.appendChild(svg);
+        item.appendChild(deleteBtn);
+        listaContainer.appendChild(item);
+      });
+    }
+
+    async function removerItem(comandaNum, index) {
+      if (!confirm("Deseja remover este item?")) return;
+      await apiRemoverItem(comandaNum, index);
+      comandas[comandaNum] = await apiLerComanda(comandaNum);
+      atualizarLista();
+      atualizarContadores();
+      feedback.textContent = "Item removido com sucesso!";
+      setTimeout(() => feedback.textContent = "", 2000);
+      scannerInput.focus();
+    }
+
+    async function limparComandaIndividual(num){
+      if(!comandas[num]||comandas[num].length===0){
+        feedback.textContent="Comanda já está vazia!";
+        return;
+      }
+      if(confirm(`Deseja realmente limpar a comanda ${num}?`)){
+        await apiLimparComanda(num);
+        comandas[num]=[];
+        if(parseInt(numeroComanda.value,10)===num) atualizarLista();
+        atualizarContadores();
+        feedback.textContent=`Comanda ${num} limpa!`;
+        scannerInput.focus();
+      }
+    }
+
+    async function limparTodasComandas(){
+      if(confirm("Deseja realmente limpar TODAS as comandas?")){
+        for(let num = 1; num <= 10; num++){
+          await apiLimparComanda(num);
+          comandas[num]=[];
+        }
+        atualizarLista();
+        atualizarContadores();
+        feedback.textContent="Todas as comandas foram limpas!";
+        scannerInput.focus();
+      }
+    }
+
+    function imprimirComanda(){
+      const comandaAtual=parseInt(numeroComanda.value,10);
+      if(!comandas[comandaAtual]||comandas[comandaAtual].length===0){
+        feedback.textContent="Nenhum item para imprimir!";
+        return;
+      }
+      const printWindow=window.open('','', 'width=300,height=600');
+      printWindow.document.write('<html><head><title>Comanda</title></head><body>');
+      printWindow.document.write(`<h3>Comanda ${numeroComanda.value}</h3>`);
+      comandas[comandaAtual].forEach((codigo,index)=>{
+        const svg=document.getElementById(`barcode-${comandaAtual}-${index}`);
+        if(svg){
+          const xml=new XMLSerializer().serializeToString(svg);
+          const svg64=btoa(unescape(encodeURIComponent(xml)));
+          const imgSrc='data:image/svg+xml;base64,'+svg64;
+          printWindow.document.write(`<img src="${imgSrc}" style="width:90%; max-width:220px;"><br>`);
+        }
+      });
+      const agora=new Date();
+      const dataHora=agora.toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
+      printWindow.document.write(`<p style="font-size:10px;margin-top:10px;">${dataHora}</p>`);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.onload=()=>{printWindow.focus();printWindow.print();printWindow.close();}
+    }
+
+    function testarImpressora(){
+      const testWindow=window.open('','','width=300,height=600');
+      testWindow.document.write('<html><head><title>Teste Impressora</title></head><body>');
+      testWindow.document.write('<p>Teste de impressão OK</p>');
+      testWindow.document.close();
+      testWindow.focus();
+      testWindow.print();
+      testWindow.close();
+      scannerInput.focus();
+    }
+
+    function mostrarQRCode() {
+      const comandaAtual = numeroComanda.value;
+      if (!comandaAtual || comandaAtual === "") {
+        alert("Selecione uma comanda primeiro!");
+        return;
+      }
+
+      const url = `${URL_BASE}/comanda/${comandaAtual}`;
+
+      document.getElementById("qrcode-numero").textContent = comandaAtual;
+      document.getElementById("qrcode-url").textContent = url;
+
+      const container = document.getElementById("qrcode-container");
+      container.innerHTML = "";
+
+      new QRCode(container, {
+        text: url,
+        width: 220,
+        height: 220,
+        colorDark: "#0B2E2C",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      document.getElementById("modal-qrcode").style.display = "flex";
+    }
+
+    function fecharQRCode() {
+      document.getElementById("modal-qrcode").style.display = "none";
+    }
+
+    document.getElementById("modal-qrcode").addEventListener("click", function(e) {
+      if (e.target === this) {
+        fecharQRCode();
+      }
+    });
+
+    selecionarComanda(1);
+  </script>
+</body>
+</html>
