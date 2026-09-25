@@ -768,7 +768,7 @@
 
     async function apiRemoverItem(num, codigo) {
   try {
-    const res = await fetch(`/.netlify/functions/comanda-item/${num}?codigo=${encodeURIComponent(codigo)}`, {
+    const res = await fetch(`/api/remover-item/${num}?codigo=${encodeURIComponent(codigo)}`, {
       method: 'DELETE'
     });
     if (!res.ok) {
