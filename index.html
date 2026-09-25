@@ -58,7 +58,13 @@
       align-items: start;
     }
 
-    @media (max-width: 980px) {
+    /* =========================================================
+       MODO TELA DIVIDIDA / PDV
+       Em telas estreitas, as comandas ficam no topo em uma
+       faixa horizontal e o conteúdo da comanda fica abaixo.
+       Isso deixa a comanda ativa e os itens sempre visíveis.
+       ========================================================= */
+    @media (max-width: 1100px) {
       .app-shell {
         grid-template-columns: 1fr;
         grid-template-areas:
@@ -67,7 +73,216 @@
           "workspace"
           "catalog"
           "footer";
+        gap: 8px;
+        max-width: none;
+        padding: 8px;
       }
+
+      .app-header {
+        padding: 10px 14px;
+        border-radius: 14px;
+      }
+
+      .app-header-brand { gap: 9px; }
+      .app-header-brand img.logo {
+        max-width: 42px;
+        max-height: 42px;
+      }
+
+      .app-header-brand h1 { font-size: 18px; }
+      .app-header-tag { display: none; }
+      .app-header-status {
+        padding: 6px 11px;
+        font-size: 11px;
+      }
+
+      /* =====================================================
+         COMANDAS NO CABEÇALHO - 2 LINHAS / 5 COLUNAS
+         Ideal para o uso lado a lado com o PDV.
+         ===================================================== */
+      .tickets-panel {
+        padding: 7px 10px 8px;
+        border-radius: 14px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        box-shadow: 0 4px 14px rgba(11,46,44,.10);
+      }
+
+      .tickets-panel h2 {
+        font-size: 11px;
+        margin: 0 0 5px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--ink-600);
+      }
+
+      .tickets-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 5px;
+        overflow: visible;
+        padding: 0;
+      }
+
+      .tickets-grid > div {
+        position: relative;
+        min-width: 0;
+        width: auto;
+        height: 42px;
+        padding: 0;
+        gap: 0;
+        border-radius: 8px;
+        background: transparent;
+        border: none;
+      }
+
+      .tickets-grid div button:first-child {
+        width: 100%;
+        height: 42px;
+        aspect-ratio: auto;
+        border-radius: 8px;
+        font-size: 17px;
+        border: 1px solid var(--line);
+        background: var(--cream-50);
+      }
+
+      .tickets-grid div button:first-child:hover {
+        background: var(--teal-800);
+        color: #fff;
+      }
+
+      .tickets-grid div button:first-child.active {
+        background: var(--mango-500);
+        color: var(--teal-950);
+        border-color: var(--mango-600);
+        box-shadow: 0 2px 7px rgba(245,165,36,.35);
+      }
+
+      .tickets-grid div span {
+        top: -3px;
+        right: -3px;
+        min-width: 16px;
+        height: 16px;
+        line-height: 16px;
+        font-size: 9px;
+        z-index: 2;
+      }
+
+      /* O botão limpar fica escondido para não ocupar espaço.
+         A limpeza continua disponível na área de ações. */
+      .tickets-grid div button:last-child {
+        display: none;
+      }
+
+      /* Área principal ocupa toda a largura disponível */
+      .workspace {
+        padding: 13px;
+        border-radius: 14px;
+      }
+
+      .input-group { margin-bottom: 9px; }
+      .input-group label { font-size: 11px; margin-bottom: 3px; }
+      .input-group input { padding: 8px 9px; font-size: 13px; }
+
+      .comanda-atual {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .comanda-atual label {
+        margin: 0;
+        white-space: nowrap;
+      }
+
+      .comanda-atual input {
+        font-size: 22px;
+        width: 70px;
+      }
+
+
+      .workspace {
+        border-radius: 14px;
+      }
+
+      .workspace > .comanda-atual {
+        background: var(--cream-50);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 7px 10px;
+      }
+
+      .workspace > .comanda-atual label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--ink-600);
+      }
+
+      .quick-mode {
+        margin-bottom: 8px;
+      }
+
+      .feedback-message {
+        min-height: 16px;
+        margin-bottom: 7px;
+        font-size: 12px;
+      }
+
+      /* Itens ficam logo abaixo do scanner e bem visíveis */
+      .scanned-items label {
+        font-size: 11px;
+        margin-bottom: 4px;
+      }
+
+      .items-list {
+        min-height: 105px;
+        max-height: 290px;
+        padding: 6px;
+      }
+
+      .scanned-item {
+        padding: 8px;
+        margin-bottom: 5px;
+      }
+
+      .scanned-item-nome { font-size: 12px; }
+      .scanned-item-codigo { font-size: 10px; }
+
+      .action-buttons {
+        margin-top: 10px;
+        gap: 6px;
+      }
+
+      .action-buttons button {
+        padding: 8px 11px;
+        font-size: 11px;
+      }
+
+      /* Cardápio fica abaixo da comanda, sem disputar espaço lateral */
+      .catalog-panel {
+        padding: 12px;
+        border-radius: 14px;
+      }
+
+      .catalog-panel h2 {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .menu-content {
+        max-height: 220px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .app-header-status { display: none; }
+      .tickets-grid > div { flex-basis: 62px; width: 62px; }
+      .tickets-grid div button:first-child { height: 44px; }
+      .action-buttons button { flex: 1 1 auto; }
     }
 
     .panel {
@@ -141,7 +356,7 @@
     .tickets-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+      gap: 6px;
     }
 
     .tickets-grid > div {
@@ -169,7 +384,7 @@
       align-items: center;
       justify-content: center;
       font-family: 'Bricolage Grotesque', sans-serif;
-      font-size: 20px;
+      font-size: 15px;
       font-weight: 700;
       background: var(--paper);
       border: none;
@@ -274,7 +489,7 @@
     .quick-mode {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
       margin-bottom: 14px;
     }
 
@@ -348,7 +563,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 6px;
       padding: 9px 10px;
       border-radius: var(--radius-sm);
       background: var(--paper);
@@ -482,7 +697,7 @@
 
     .produto-item {
       margin-bottom: 10px;
-      padding: 10px;
+      padding: 6px;
       background: var(--cream-50);
       border: 1px solid var(--line);
       border-radius: var(--radius-sm);
@@ -602,7 +817,7 @@
     .modal-qrcode-content #qrcode-container {
       margin: 18px auto;
       display: inline-block;
-      padding: 10px;
+      padding: 6px;
       background: white;
       border: 1px solid var(--line);
       border-radius: var(--radius-sm);
@@ -631,6 +846,28 @@
 
     .modal-qrcode-content button:hover { background: var(--coral-600); }
   </style>
+
+<style id="compact-command-buttons">
+  .command-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+    margin: 4px 0 8px !important;
+  }
+  .command-grid button,
+  .command-grid .comanda-btn {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 4px 6px !important;
+    font-size: 15px !important;
+    line-height: 1 !important;
+  }
+  .command-grid .badge,
+  .command-grid .contador,
+  .command-grid span {
+    font-size: 10px !important;
+  }
+</style>
+
 </head>
 <body>
   <div class="app-shell">
@@ -767,24 +1004,27 @@
     }
 
     async function apiRemoverItem(num, codigo) {
-  try {
-   const res = await fetch(`/api/comanda/${num}?codigo=${encodeURIComponent(codigo)}`, {
-      method: "DELETE"
-    });
+      try {
+        const res = await fetch(
+          `/api/comanda/${num}?codigo=${encodeURIComponent(codigo)}`,
+          {
+            method: 'DELETE'
+          }
+        );
 
-    const dados = await res.json();
+        if (!res.ok) {
+          console.error("Erro ao remover:", res.status, res.statusText);
+          return null;
+        }
 
-    if (!res.ok) {
-      console.error("Erro ao remover:", dados);
-      return null;
+        return await res.json();
+
+      } catch (err) {
+        console.error("Erro ao remover item:", err);
+        return null;
+      }
     }
 
-    return dados;
-  } catch (err) {
-    console.error("Erro ao remover item:", err);
-    return null;
-  }
-}
     async function apiLimparComanda(num) {
       try {
         const res = await fetch(`/api/comanda/${num}`, {
@@ -1056,15 +1296,28 @@
     }
 
     async function removerItem(comandaNum, codigo) {
-  if (!confirm("Deseja remover este item?")) return;
-  await apiRemoverItem(comandaNum, codigo);
-  comandas[comandaNum] = await apiLerComanda(comandaNum);
-  atualizarLista();
-  atualizarContadores();
-  feedback.textContent = "Item removido com sucesso!";
-  setTimeout(() => feedback.textContent = "", 2000);
-  scannerInput.focus();
-}
+      if (!confirm("Deseja remover este item?")) return;
+
+      const resultado = await apiRemoverItem(comandaNum, codigo);
+
+      if (!resultado) {
+        feedback.textContent = "Não foi possível remover o item.";
+        setTimeout(() => feedback.textContent = "", 2000);
+        scannerInput.focus();
+        return;
+      }
+
+      comandas[comandaNum] = Array.isArray(resultado.itens)
+        ? resultado.itens
+        : await apiLerComanda(comandaNum);
+
+      atualizarLista();
+      atualizarContadores();
+
+      feedback.textContent = "Item removido com sucesso!";
+      setTimeout(() => feedback.textContent = "", 2000);
+      scannerInput.focus();
+    }
 
     async function limparComandaIndividual(num){
       if(!comandas[num]||comandas[num].length===0){
