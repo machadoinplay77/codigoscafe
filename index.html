@@ -947,13 +947,13 @@
             return;
           }
 
-          // Adiciona cada unidade via API
+          // Adiciona cada unidade via API, usando a lista que a própria
+          // função já devolve (evita reconsultar o servidor logo em seguida)
+          let resultadoAdd = null;
           for (let i = 0; i < quantidade; i++) {
-            await apiAdicionarItem(comandaAtual, produto.codigo);
+            resultadoAdd = await apiAdicionarItem(comandaAtual, produto.codigo);
           }
-
-          // Recarrega a comanda do servidor
-          comandas[comandaAtual] = await apiLerComanda(comandaAtual);
+          comandas[comandaAtual] = (resultadoAdd && resultadoAdd.itens) ? resultadoAdd.itens : await apiLerComanda(comandaAtual);
           atualizarLista();
           atualizarContadores();
           feedback.textContent = `${quantidade} ${produto.nome} adicionado(s)!`;
@@ -1005,9 +1005,9 @@
         const codigo = scannerInput.value.trim();
         if(codigo && numeroComanda.value){
           const comandaAtual = parseInt(numeroComanda.value,10);
-          await apiAdicionarItem(comandaAtual, codigo);
+          const resultadoAdd = await apiAdicionarItem(comandaAtual, codigo);
           scannerInput.value="";
-          comandas[comandaAtual] = await apiLerComanda(comandaAtual);
+          comandas[comandaAtual] = (resultadoAdd && resultadoAdd.itens) ? resultadoAdd.itens : await apiLerComanda(comandaAtual);
           atualizarLista();
           if(modoRapido.checked){
             feedback.textContent = `Item ${codigo} adicionado!`;
@@ -1073,8 +1073,8 @@
 
     async function removerItem(comandaNum, index) {
       if (confirm("Deseja remover este item?")) {
-        await apiRemoverItem(comandaNum, index);
-        comandas[comandaNum] = await apiLerComanda(comandaNum);
+        const resultadoDel = await apiRemoverItem(comandaNum, index);
+        comandas[comandaNum] = (resultadoDel && resultadoDel.itens) ? resultadoDel.itens : await apiLerComanda(comandaNum);
         atualizarLista();
         atualizarContadores();
         feedback.textContent = "Item removido com sucesso!";
