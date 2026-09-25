@@ -13,11 +13,7 @@ export default async (request, context) => {
   }
 
   const url = new URL(request.url);
-  const partes = url.pathname.split("/").filter(Boolean);
-
-  // A URL agora é: /.netlify/functions/comanda-item/{id}?codigo=XXXX
-  // Extrai o ID da comanda (penúltimo segmento)
-  const comandaId = partes[partes.length - 1];
+  const comandaId = context.params.id;
   const codigo = url.searchParams.get("codigo");
 
   if (!comandaId || !codigo) {
@@ -32,8 +28,6 @@ export default async (request, context) => {
 
   try {
     const dados = (await store.get(chave, { type: "json" })) || [];
-
-    // Remove a PRIMEIRA ocorrência do código
     const idx = dados.indexOf(codigo);
     if (idx === -1) {
       return new Response(JSON.stringify({ error: "Item nao encontrado", itens: dados }), {
@@ -41,19 +35,20 @@ export default async (request, context) => {
         headers,
       });
     }
-
     dados.splice(idx, 1);
     await store.setJSON(chave, dados);
-
     return new Response(JSON.stringify({ sucesso: true, itens: dados }), {
       status: 200,
       headers,
     });
   } catch (err) {
-    console.error("Erro ao remover item:", err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers,
     });
   }
+};
+
+export const config = {
+  path: "/.netlify/functions/comanda-item/:id",
 };
