@@ -14,10 +14,13 @@ export default async (request, context) => {
 
   const url = new URL(request.url);
   const partes = url.pathname.split("/").filter(Boolean);
-  const index = parseInt(partes[partes.length - 1], 10);
-  const comandaId = partes[partes.length - 2];
 
-  if (!comandaId || isNaN(index)) {
+  // A URL agora é: /.netlify/functions/comanda-item/{id}?codigo=XXXX
+  // Extrai o ID da comanda (penúltimo segmento)
+  const comandaId = partes[partes.length - 1];
+  const codigo = url.searchParams.get("codigo");
+
+  if (!comandaId || !codigo) {
     return new Response(JSON.stringify({ error: "Parametros invalidos" }), {
       status: 400,
       headers,
@@ -30,14 +33,16 @@ export default async (request, context) => {
   try {
     const dados = (await store.get(chave, { type: "json" })) || [];
 
-    if (index < 0 || index >= dados.length) {
+    // Remove a PRIMEIRA ocorrência do código
+    const idx = dados.indexOf(codigo);
+    if (idx === -1) {
       return new Response(JSON.stringify({ error: "Item nao encontrado", itens: dados }), {
         status: 404,
         headers,
       });
     }
 
-    dados.splice(index, 1);
+    dados.splice(idx, 1);
     await store.setJSON(chave, dados);
 
     return new Response(JSON.stringify({ sucesso: true, itens: dados }), {
