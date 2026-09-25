@@ -13,7 +13,7 @@ export default async (request, context) => {
   }
 
   const url = new URL(request.url);
-  const partes = url.pathname.split("/");
+  const partes = url.pathname.split("/").filter(Boolean);
   const index = parseInt(partes[partes.length - 1], 10);
   const comandaId = partes[partes.length - 2];
 
@@ -24,14 +24,14 @@ export default async (request, context) => {
     });
   }
 
-  const store = getStore("comandas");
+  const store = getStore({ name: "comandas", consistency: "strong" });
   const chave = "comanda-" + comandaId;
 
   try {
     const dados = (await store.get(chave, { type: "json" })) || [];
 
     if (index < 0 || index >= dados.length) {
-      return new Response(JSON.stringify({ error: "Item nao encontrado" }), {
+      return new Response(JSON.stringify({ error: "Item nao encontrado", itens: dados }), {
         status: 404,
         headers,
       });
