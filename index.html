@@ -263,19 +263,6 @@
       }
 
       /* Cardápio fica abaixo da comanda, sem disputar espaço lateral */
-      .catalog-panel {
-        padding: 12px;
-        border-radius: 14px;
-      }
-
-      .catalog-panel h2 {
-        font-size: 13px;
-        margin-bottom: 8px;
-      }
-
-      .menu-content {
-        max-height: 220px;
-      }
     }
 
     @media (max-width: 700px) {
@@ -658,136 +645,12 @@
     .btn-qrcode { background-color: var(--mango-500); color: var(--teal-950); }
     .btn-qrcode:hover { filter: brightness(1.05); }
 
-    .catalog-panel { grid-area: catalog; }
-
-    .catalog-tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .menu-toggle {
-      flex: 1;
-      padding: 10px 6px;
-      border: none;
-      border-radius: var(--radius-sm);
-      background: var(--cream-50);
-      color: var(--ink-600);
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      font-family: 'Inter', sans-serif;
-      transition: background .15s, color .15s;
-    }
-
-    .menu-toggle.expanded { background: var(--teal-800); color: #fff; }
-
-    .menu-content {
-      display: none;
-      max-height: 60vh;
-      overflow-y: auto;
-      padding-right: 2px;
-    }
-
-    .menu-content.expanded { display: block; }
-
-    .produto-item {
-      margin-bottom: 10px;
-      padding: 6px;
-      background: var(--cream-50);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-    }
-
-    .produto-info {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 8px;
-      gap: 4px;
-    }
-
-    .produto-nome {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--ink-900);
-    }
-
 
     .produto-preco {
       font-size: 12px;
       font-weight: 700;
       color: var(--teal-800);
       margin-top: 2px;
-    }
-
-    .produto-codigo {
-      font-size: 10px;
-      background: var(--paper);
-      padding: 3px 6px;
-      border-radius: 4px;
-      color: var(--ink-400);
-      font-family: monospace;
-      align-self: flex-start;
-    }
-
-    .quantidade-control {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-
-    .quantidade-btn {
-      width: 26px;
-      height: 26px;
-      background-color: var(--paper);
-      border: 1px solid var(--line);
-      color: var(--teal-900);
-      border-radius: 50%;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background .15s, color .15s;
-    }
-
-    .quantidade-btn:hover { background-color: var(--teal-800); color: #fff; }
-
-    .quantidade-value {
-      font-weight: 700;
-      min-width: 18px;
-      text-align: center;
-    }
-
-    .adicionar-btn {
-      width: 100%;
-      padding: 8px;
-      background-color: var(--teal-800);
-      color: white;
-      border: none;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      font-family: 'Inter', sans-serif;
-      transition: background 0.2s;
-    }
-
-    .adicionar-btn:hover { background-color: var(--teal-700); }
-
-    footer {
-      grid-area: footer;
-      text-align: center;
-      color: var(--ink-400);
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 4px 0 10px;
     }
 
     footer img { max-width: 26px; border-radius: 6px; }
@@ -941,16 +804,6 @@
       </div>
     </div>
 
-    <div class="catalog-panel panel">
-      <h2>Cardápio</h2>
-      <div class="catalog-tabs">
-        <button class="menu-toggle" id="bebidas-toggle"><i class="fas fa-wine-bottle"></i> Bebidas</button>
-        <button class="menu-toggle" id="salgados-toggle"><i class="fas fa-hamburger"></i> Salgados</button>
-      </div>
-      <div class="menu-content" id="bebidas-content"></div>
-      <div class="menu-content" id="salgados-content"></div>
-    </div>
-
     <footer>
       <img src="logo-mini.jpg" class="footer-logo" alt="Logo Tropicana Mini">
       <p>by fernandofam2025</p>
@@ -973,11 +826,6 @@
     const numeroComanda = document.getElementById("numeroComanda");
     const modoRapido = document.getElementById("modo-rapido");
     const feedback = document.getElementById("feedback");
-    const bebidasToggle = document.getElementById("bebidas-toggle");
-    const bebidasContent = document.getElementById("bebidas-content");
-    const salgadosToggle = document.getElementById("salgados-toggle");
-    const salgadosContent = document.getElementById("salgados-content");
-    const menuComandas = document.getElementById("menu-comandas");
     const headerStatus = document.getElementById("header-status");
 
     let comandas = {};
@@ -1084,8 +932,9 @@
     }
 
     // ============================================================
-    // CATÁLOGO DE PRODUTOS
-    // A base completa fica em produtos.json, gerada a partir do Excel.
+    // BANCO DE PRODUTOS
+    // O catálogo vem do produtos.json gerado a partir do Excel.
+    // Não há mais menu de Bebidas/Salgados na interface.
     // ============================================================
 
     let produtos = [];
@@ -1093,286 +942,40 @@
 
     async function carregarProdutos() {
       try {
-        const res = await fetch("produtos.json", { cache: "no-store" });
+        const res = await fetch("./produtos.json", { cache: "no-store" });
 
         if (!res.ok) {
-          throw new Error("Não foi possível carregar produtos.json");
+          throw new Error("HTTP " + res.status + " ao carregar produtos.json");
         }
 
-        produtos = await res.json();
+        const dados = await res.json();
+
+        if (!Array.isArray(dados)) {
+          throw new Error("produtos.json não contém uma lista válida.");
+        }
+
+        produtos = dados;
 
         produtos.forEach(p => {
-          produtosPorCodigo[String(p.codigo)] = p;
+          const codigo = String(p.codigo ?? "").trim();
+
+          if (codigo) {
+            produtosPorCodigo[codigo] = {
+              codigo,
+              nome: String(p.nome ?? "").trim() || "Produto sem descrição",
+              preco: p.preco
+            };
+          }
         });
 
-        inicializarCatalogo();
+        console.log("Catálogo carregado:", produtos.length, "produtos.");
+
+        return true;
       } catch (err) {
         console.error("Erro ao carregar catálogo:", err);
         feedback.textContent = "Não foi possível carregar o cadastro de produtos.";
+        return false;
       }
-    }
-
-    function formatarPreco(valor) {
-      if (valor === null || valor === undefined || valor === "" || Number.isNaN(Number(valor))) {
-        return "";
-      }
-
-      return Number(valor).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      });
-    }
-
-    function adicionarProdutoNaComanda(produto, quantidade) {
-      return (async () => {
-        const comandaAtual = parseInt(numeroComanda.value, 10);
-
-        if (!comandaAtual) {
-          feedback.textContent = "Selecione uma comanda primeiro!";
-          setTimeout(() => feedback.textContent = "", 2000);
-          return;
-        }
-
-        const resultado = await apiAdicionarItem(
-          comandaAtual,
-          produto.codigo,
-          quantidade
-        );
-
-        if (!resultado) {
-          feedback.textContent = "Erro ao adicionar o produto.";
-          return;
-        }
-
-        comandas[comandaAtual] = await apiLerComanda(comandaAtual);
-        atualizarLista();
-        atualizarContadores();
-
-        feedback.textContent =
-          `${quantidade} ${produto.nome} adicionado(s)!`;
-
-        setTimeout(() => feedback.textContent = "", 2000);
-
-        scannerInput.focus();
-      })();
-    }
-
-    function renderizarProdutos(lista) {
-      bebidasContent.innerHTML = "";
-
-      if (!lista.length) {
-        bebidasContent.innerHTML =
-          '<div class="empty-state">Nenhum produto encontrado.</div>';
-        return;
-      }
-
-      const limite = lista.slice(0, 100);
-
-      limite.forEach(produto => {
-        const produtoItem = document.createElement("div");
-        produtoItem.className = "produto-item";
-
-        const produtoInfo = document.createElement("div");
-        produtoInfo.className = "produto-info";
-
-        const nomeSpan = document.createElement("span");
-        nomeSpan.className = "produto-nome";
-        nomeSpan.textContent = produto.nome || "Produto sem descrição";
-
-        const codigoSpan = document.createElement("span");
-        codigoSpan.className = "produto-codigo";
-        codigoSpan.textContent = produto.codigo;
-
-        produtoInfo.appendChild(nomeSpan);
-        produtoInfo.appendChild(codigoSpan);
-
-        if (produto.preco !== null && produto.preco !== undefined) {
-          const precoSpan = document.createElement("span");
-          precoSpan.className = "produto-preco";
-          precoSpan.textContent = formatarPreco(produto.preco);
-          produtoInfo.appendChild(precoSpan);
-        }
-
-        const quantidadeControl = document.createElement("div");
-        quantidadeControl.className = "quantidade-control";
-
-        const menosBtn = document.createElement("button");
-        menosBtn.className = "quantidade-btn";
-        menosBtn.textContent = "-";
-
-        const quantidadeValue = document.createElement("span");
-        quantidadeValue.className = "quantidade-value";
-        quantidadeValue.textContent = "1";
-
-        const maisBtn = document.createElement("button");
-        maisBtn.className = "quantidade-btn";
-        maisBtn.textContent = "+";
-
-        const adicionarBtn = document.createElement("button");
-        adicionarBtn.className = "adicionar-btn";
-        adicionarBtn.textContent = "Adicionar";
-
-        quantidadeControl.appendChild(menosBtn);
-        quantidadeControl.appendChild(quantidadeValue);
-        quantidadeControl.appendChild(maisBtn);
-
-        produtoItem.appendChild(produtoInfo);
-        produtoItem.appendChild(quantidadeControl);
-        produtoItem.appendChild(adicionarBtn);
-
-        bebidasContent.appendChild(produtoItem);
-
-        let quantidade = 1;
-
-        menosBtn.addEventListener("click", () => {
-          if (quantidade > 1) {
-            quantidade--;
-            quantidadeValue.textContent = quantidade;
-          }
-        });
-
-        maisBtn.addEventListener("click", () => {
-          quantidade++;
-          quantidadeValue.textContent = quantidade;
-        });
-
-        adicionarBtn.addEventListener("click", () => {
-          adicionarProdutoNaComanda(produto, quantidade);
-          quantidade = 1;
-          quantidadeValue.textContent = "1";
-        });
-      });
-
-      if (lista.length > 100) {
-        const aviso = document.createElement("div");
-        aviso.className = "empty-state";
-        aviso.textContent =
-          `Mostrando os primeiros 100 de ${lista.length} resultados. Refine a busca.`;
-        bebidasContent.appendChild(aviso);
-      }
-    }
-
-    function inicializarCatalogo() {
-      bebidasToggle.innerHTML =
-        '<i class="fas fa-boxes-stacked"></i> Produtos';
-
-      salgadosToggle.innerHTML =
-        '<i class="fas fa-magnifying-glass"></i> Buscar';
-
-      bebidasToggle.classList.add("expanded");
-      bebidasContent.classList.add("expanded");
-
-      salgadosToggle.classList.remove("expanded");
-      salgadosContent.classList.remove("expanded");
-
-      // Campo de busca
-      salgadosContent.innerHTML = `
-        <div style="margin-bottom:10px;">
-          <input
-            id="busca-produto"
-            type="text"
-            placeholder="Digite código ou nome do produto..."
-            autocomplete="off"
-            style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:13px;"
-          >
-        </div>
-        <div id="resultado-produtos-busca"></div>
-      `;
-
-      const busca = document.getElementById("busca-produto");
-      const resultados = document.getElementById("resultado-produtos-busca");
-
-      busca.addEventListener("input", () => {
-        const termo = busca.value.trim().toLowerCase();
-
-        if (!termo) {
-          resultados.innerHTML =
-            '<div class="empty-state">Digite o código ou nome do produto.</div>';
-          return;
-        }
-
-        const encontrados = produtos.filter(p =>
-          String(p.codigo).toLowerCase().includes(termo) ||
-          String(p.nome || "").toLowerCase().includes(termo)
-        );
-
-        // Reutiliza o mesmo renderizador em um container temporário.
-        resultados.innerHTML = "";
-        const original = bebidasContent;
-        const temp = document.createElement("div");
-        temp.className = "menu-content expanded";
-
-        // Renderiza diretamente no resultado.
-        const limite = encontrados.slice(0, 100);
-
-        limite.forEach(produto => {
-          const item = document.createElement("div");
-          item.className = "produto-item";
-
-          const info = document.createElement("div");
-          info.className = "produto-info";
-
-          const nome = document.createElement("span");
-          nome.className = "produto-nome";
-          nome.textContent = produto.nome || "Produto sem descrição";
-
-          const cod = document.createElement("span");
-          cod.className = "produto-codigo";
-          cod.textContent = produto.codigo;
-
-          info.appendChild(nome);
-          info.appendChild(cod);
-
-          if (produto.preco !== null && produto.preco !== undefined) {
-            const preco = document.createElement("span");
-            preco.className = "produto-preco";
-            preco.textContent = formatarPreco(produto.preco);
-            info.appendChild(preco);
-          }
-
-          const add = document.createElement("button");
-          add.className = "adicionar-btn";
-          add.textContent = "Adicionar à Comanda";
-          add.addEventListener("click", () => adicionarProdutoNaComanda(produto, 1));
-
-          item.appendChild(info);
-          item.appendChild(add);
-          resultados.appendChild(item);
-        });
-
-        if (!encontrados.length) {
-          resultados.innerHTML =
-            '<div class="empty-state">Nenhum produto encontrado.</div>';
-        } else if (encontrados.length > 100) {
-          const aviso = document.createElement("div");
-          aviso.className = "empty-state";
-          aviso.textContent =
-            `Mostrando 100 de ${encontrados.length} resultados.`;
-          resultados.appendChild(aviso);
-        }
-      });
-
-      // "Produtos": mostra uma pequena amostra inicial.
-      renderizarProdutos(produtos.slice(0, 50));
-
-      bebidasToggle.onclick = () => {
-        bebidasToggle.classList.add("expanded");
-        bebidasContent.classList.add("expanded");
-        salgadosToggle.classList.remove("expanded");
-        salgadosContent.classList.remove("expanded");
-      };
-
-      salgadosToggle.onclick = () => {
-        salgadosToggle.classList.add("expanded");
-        salgadosContent.classList.add("expanded");
-        bebidasToggle.classList.remove("expanded");
-        bebidasContent.classList.remove("expanded");
-
-        setTimeout(() => {
-          const busca = document.getElementById("busca-produto");
-          if (busca) busca.focus();
-        }, 50);
-      };
     }
 
     async function selecionarComanda(num) {
@@ -1586,7 +1189,10 @@
       }
     });
 
-    selecionarComanda(1);
+    // Primeiro carrega o banco de produtos.
+    // Depois lê a comanda, garantindo que os itens já possam
+    // ser identificados pelo código.
+    carregarProdutos().then(() => selecionarComanda(1));
   </script>
 </body>
 </html>
