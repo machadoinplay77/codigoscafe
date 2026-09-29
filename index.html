@@ -716,7 +716,124 @@
     }
 
     .modal-qrcode-content button:hover { background: var(--coral-600); }
-  </style>
+      /* =========================================================
+       REFINO VISUAL — mantém a divisão e a dinâmica atuais
+       ========================================================= */
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(245,165,36,.08), transparent 28%),
+        linear-gradient(180deg, #f8f5ee 0%, #f3efe6 100%);
+    }
+
+    .app-shell {
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .panel {
+      box-shadow: 0 5px 18px rgba(11,46,44,.08);
+    }
+
+    .tickets-panel {
+      border-color: rgba(23,80,72,.14);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
+    }
+
+    .tickets-panel h2 {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .tickets-panel h2::before {
+      content: "";
+      width: 4px;
+      height: 16px;
+      border-radius: 99px;
+      background: var(--mango-500);
+    }
+
+    .tickets-grid > div {
+      overflow: visible;
+      box-shadow: 0 2px 7px rgba(11,46,44,.045);
+    }
+
+    .tickets-grid div button:first-child {
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(11,46,44,.025);
+    }
+
+    .tickets-grid div button:first-child.active {
+      box-shadow: 0 4px 12px rgba(245,165,36,.22), inset 0 0 0 1px rgba(220,138,14,.25);
+    }
+
+    /* Limpar uma comanda inteira, sem ocupar o espaço do número. */
+    .tickets-grid div .btn-limpar-comanda {
+      display: flex !important;
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      z-index: 5;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(232,87,75,.18);
+      border-radius: 7px;
+      background: rgba(255,255,255,.94);
+      color: var(--coral-500);
+      font-size: 10px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(11,46,44,.10);
+      transition: transform .15s ease, background .15s ease, color .15s ease;
+    }
+
+    .tickets-grid div .btn-limpar-comanda:hover {
+      transform: scale(1.06);
+      background: var(--coral-500);
+      color: #fff;
+    }
+
+    .tickets-grid div .btn-limpar-comanda:active {
+      transform: scale(.96);
+    }
+
+    .tickets-grid div span {
+      box-shadow: 0 2px 5px rgba(232,87,75,.22);
+    }
+
+    .workspace {
+      border-color: rgba(23,80,72,.13);
+      box-shadow: 0 7px 22px rgba(11,46,44,.09);
+    }
+
+    .workspace > .comanda-atual {
+      border: 1px solid rgba(23,80,72,.12);
+      background: linear-gradient(135deg, #fbfaf6, #f4f1e9);
+    }
+
+    .input-icon-wrap input {
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(11,46,44,.04);
+    }
+
+    .items-list {
+      background: linear-gradient(180deg, #faf8f3, #f5f2ea);
+      box-shadow: inset 0 1px 3px rgba(11,46,44,.035);
+    }
+
+    .scanned-item {
+      border: 1px solid rgba(230,226,214,.8);
+    }
+
+    .action-buttons {
+      padding-top: 2px;
+    }
+
+</style>
 
 <style id="compact-command-buttons">
   .command-grid {
@@ -915,8 +1032,14 @@
       contador.textContent = "0";
 
       const btnLimpar = document.createElement("button");
-      btnLimpar.textContent = "limpar";
-      btnLimpar.addEventListener("click", () => limparComandaIndividual(i));
+      btnLimpar.className = "btn-limpar-comanda";
+      btnLimpar.innerHTML = '<i class="fas fa-trash-can"></i>';
+      btnLimpar.title = `Limpar comanda ${i.toString().padStart(2, '0')}`;
+      btnLimpar.setAttribute("aria-label", `Limpar comanda ${i.toString().padStart(2, '0')}`);
+      btnLimpar.addEventListener("click", (e) => {
+        e.stopPropagation();
+        limparComandaIndividual(i);
+      });
 
       btnContainer.appendChild(btn);
       btnContainer.appendChild(contador);
